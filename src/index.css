@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+  
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  padding: 0;
+  margin: 0;
+
+  --bar-width: 12px;
+  --bar-height: 80px;
+
+  --bar-background: rgb(245, 132, 12);
+  --bar-background-2: rgb(123, 255, 83);
+}
+
+
+.bar{
+  background-color: var(--bar-background);
+  background: linear-gradient(var(--bar-background), var(--bar-background-2));
+  width: var(--bar-width);
+  height: var(--bar-height);
+  /* animation: grow 1500ms infinite ease-in-out alternate; */
+  transform-origin: bottom;
+}
+
+.bar-1{
+  /* animation-delay: 300ms; */
+  animation: grow 1500ms  infinite ease-in-out alternate;
+
+}
+
+.bar-2{
+  /* animation-delay: 600ms; */
+  animation: grow 1300ms  infinite ease-in-out alternate;
+}
+
+.bar-3{
+  /* animation-delay: 900ms; */
+  animation: grow 1600ms infinite ease-in-out alternate;
+
+}
+
+@keyframes grow{
+  from{
+    transform: scaleY(0.3);
+  }
+  to{
+    transform: scaleY(1);
+  }
+}
