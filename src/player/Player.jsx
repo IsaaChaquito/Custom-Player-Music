@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Info } from 'lucide-react';
 import { parseBlob } from 'music-metadata-browser';
-import { AddSongIcon } from '../assets/icons'; 
+import { AddSongIcon, InfoItalicIcon } from '../assets/icons'; 
 
 // Componente principal del reproductor de música
 export default function MusicPlayer() {
@@ -14,6 +14,7 @@ export default function MusicPlayer() {
   const [volume, setVolume] = useState(0.7);
   const [isMuted, setIsMuted] = useState(false);
   const [volumeBarWidth, setVolumeBarWidth] = useState(0)
+  const [showSongInfo, setShowSongInfo] = useState(false);
   
   // Referencias para manipular el elemento de audio
   const audioRef = useRef(null);
@@ -170,6 +171,10 @@ export default function MusicPlayer() {
   const handleMouseLeave = () => {
     setVolumeBarWidth(0)
   }
+
+  const alternateShowSongInfo = () => {
+    setShowSongInfo(!showSongInfo)
+  }
   
   return (
     <div className="flex flex-col items-center w-full sm:w-3xl min-h-screen  p-6 mx-auto bg-gray-800 sm:rounded-lg shadow-lg">
@@ -192,32 +197,37 @@ export default function MusicPlayer() {
       </div>
 
       {/* Imagen de la cancion */}
-      <div className="mb-6 *:rounded-lg relative group shadow-md">
-        {playlist.length > 0 && (
-          <img 
-              src={playlist[currentTrackIndex].picture} 
-              alt={playlist[currentTrackIndex].title} 
-              className="size-48 "
-            />
-        )}
+      {playlist.length > 0 && (
+        <div onClick={alternateShowSongInfo} className="mb-6 *:rounded-lg relative group shadow-md">
+            <img 
+                src={playlist[currentTrackIndex].picture} 
+                alt={playlist[currentTrackIndex].title} 
+                className="size-48 "
+              />
 
-        {playlist[currentTrackIndex] &&
-          <div className='flex flex-col gap-y-1 absolute top-0 left-0 size-48 bg-black opacity-0 group-hover:opacity-85 text-sm p-3 duration-300'>
-            <h3 className="text-xl font-semibold text-white text-center"> {playlist[currentTrackIndex].name}</h3>
-            <h3 className='text-sm text-gray-400 font-normal'>Artist: {playlist[currentTrackIndex].artist}</h3>
-            <h3 className='text-sm text-gray-400 font-normal'>Album: {playlist[currentTrackIndex].album}</h3>
-            <h3 className='text-sm text-gray-400 font-normal'>Year: {playlist[currentTrackIndex].year}</h3>
-            <h3 className='text-sm text-gray-400 font-normal'>Genre: {playlist[currentTrackIndex].genre.join(', ')}</h3>
-          </div>}
-      </div>
+          {playlist[currentTrackIndex] &&
+            <div className={`flex flex-col gap-y-1 absolute top-0 left-0 size-48 bg-black opacity-0 group-hover:opacity-85 text-sm p-3 duration-300 ${showSongInfo ? 'opacity-85' : 'opacity-0'}`}>
+              <h3 className="text-xl font-semibold text-white text-center"> {playlist[currentTrackIndex].name}</h3>
+              <h3 className='text-sm text-gray-400 font-normal'>Artist: {playlist[currentTrackIndex].artist}</h3>
+              <h3 className='text-sm text-gray-400 font-normal'>Album: {playlist[currentTrackIndex].album}</h3>
+              <h3 className='text-sm text-gray-400 font-normal'>Year: {playlist[currentTrackIndex].year}</h3>
+              <h3 className='text-sm text-gray-400 font-normal'>Genre: {playlist[currentTrackIndex].genre.join(', ')}</h3>
+            </div>}
+        </div>
+      )}
       
       {/* Información de la canción actual */}
       <div className="w-48 mb-4 text-center bg-slate-6000">
         {playlist.length > 0 ? (
-          <div className='flex flex-col items-start'>
-            <h3 className="text-xl font-semibold text-white"> {playlist[currentTrackIndex].name}</h3>
-            <h3 className='text-sm text-gray-400 font-normal'>{playlist[currentTrackIndex].artist}</h3>
-            {/* <p className="text-gray-400 text-sm">Pista {currentTrackIndex + 1} de {playlist.length}</p> */}
+          <div className='flex justify-between items-center'>
+            <div className='flex flex-col items-start'>
+              <h3 className="text-xl font-semibold text-white"> {playlist[currentTrackIndex].name}</h3>
+              <h3 className='text-sm text-gray-400 font-normal'>{playlist[currentTrackIndex].artist}</h3>
+              {/* <p className="text-gray-400 text-sm">Pista {currentTrackIndex + 1} de {playlist.length}</p> */}
+            </div>
+            <button onClick={ alternateShowSongInfo } className='p-1.5 rounded-full'>
+              <InfoItalicIcon className="w-5.5 h-5.5 text-gray-400" />
+            </button>
           </div>
         ) : (
           <p className="text-gray-400">No hay canciones cargadas</p>
