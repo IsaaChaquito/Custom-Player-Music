@@ -79,41 +79,6 @@ export default function MusicPlayer() {
     }
   };
 
-  // Cargar archivos de música
-  // const handleFileUpload = async (e) => {
-
-  //   // console.log('e.target.files', e.target.files);
-  //   const file = e.target.files[0];
-  //   if (!file) return;
-
-  //   try {
-  //     const metadata = await parseBlob(file);
-  //     // setMetadata(metadata);
-  //     console.log({ metadata });
-  //   } catch (error) {
-  //     console.error("Error leyendo metadatos:", error);
-  //   }
-
-    
-  //   const files = Array.from(e.target.files);
-  //   console.dir({ files });
-
-  //   if (!files) return;
-    
-  //   const newPlaylist = files.map(file => ({
-  //     name: file.name.replace(/\.[^/.]+$/, ""), // Quitar extensión
-  //     url: URL.createObjectURL(file),
-  //     file
-  //   }));
-
-    
-  //   setPlaylist([...playlist, ...newPlaylist]);
-    
-  //   // Si es la primera canción cargada, configurarla
-  //   if (playlist.length === 0 && newPlaylist.length > 0) {
-  //     setCurrentTrackIndex(0);
-  //   }
-  // };
   
   // Controles de reproducción
   const togglePlay = () => {
@@ -227,30 +192,33 @@ export default function MusicPlayer() {
       </div>
 
       {/* Imagen de la cancion */}
-      <div className="mb-6">
+      <div className="mb-6 *:rounded-lg relative group shadow-md">
         {playlist.length > 0 && (
           <img 
               src={playlist[currentTrackIndex].picture} 
               alt={playlist[currentTrackIndex].title} 
-              className="w-48 aspect-square rounded-lg shadow-2xl"
+              className="size-48 "
             />
-          // <div class="mask-[url(./assets/images/spray-1.avif)] ">
-          //   <img 
-          //     src={playlist[currentTrackIndex].picture} 
-          //     alt={playlist[currentTrackIndex].title} 
-          //     className="w-48 aspect-square rounded-lg shadow-2xl"
-          //   />
-          // </div>
         )}
+
+        {playlist[currentTrackIndex] &&
+          <div className='flex flex-col gap-y-1 absolute top-0 left-0 size-48 bg-black opacity-0 group-hover:opacity-85 text-sm p-3 duration-300'>
+            <h3 className="text-xl font-semibold text-white text-center"> {playlist[currentTrackIndex].name}</h3>
+            <h3 className='text-sm text-gray-400 font-normal'>Artist: {playlist[currentTrackIndex].artist}</h3>
+            <h3 className='text-sm text-gray-400 font-normal'>Album: {playlist[currentTrackIndex].album}</h3>
+            <h3 className='text-sm text-gray-400 font-normal'>Year: {playlist[currentTrackIndex].year}</h3>
+            <h3 className='text-sm text-gray-400 font-normal'>Genre: {playlist[currentTrackIndex].genre.join(', ')}</h3>
+          </div>}
       </div>
       
       {/* Información de la canción actual */}
-      <div className="w-full mb-4 text-center">
+      <div className="w-48 mb-4 text-center bg-slate-6000">
         {playlist.length > 0 ? (
-          <>
-            <h3 className="text-xl font-semibold text-white"> {playlist[currentTrackIndex].artist} - {playlist[currentTrackIndex].name}</h3>
-            <p className="text-gray-400">Pista {currentTrackIndex + 1} de {playlist.length}</p>
-          </>
+          <div className='flex flex-col items-start'>
+            <h3 className="text-xl font-semibold text-white"> {playlist[currentTrackIndex].name}</h3>
+            <h3 className='text-sm text-gray-400 font-normal'>{playlist[currentTrackIndex].artist}</h3>
+            {/* <p className="text-gray-400 text-sm">Pista {currentTrackIndex + 1} de {playlist.length}</p> */}
+          </div>
         ) : (
           <p className="text-gray-400">No hay canciones cargadas</p>
         )}
