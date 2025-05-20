@@ -25,7 +25,7 @@ export default function MusicPlayer() {
     const files = Array.from(e.target.files);
 
     if (!files) return;
-    
+    console.log('files exist');
     const newPlaylist = await Promise.all(files.map( async file => {
 
       try {
@@ -64,9 +64,6 @@ export default function MusicPlayer() {
       } catch (error) {
         console.error("Error leyendo metadatos:", error);
       }
-
-        console.log({ newPlaylist });
-
 
     }))
 
@@ -320,7 +317,7 @@ export default function MusicPlayer() {
             {playlist.map((track, index) => (
               <li 
                 key={index} 
-                className={`relative flex items-center p-3 border-b cursor-pointer border-gray-600 hover:bg-gray-600 ${index === currentTrackIndex ? 'bg-gray-600' : ''}`}
+                className={`relative flex items-center p-3 border-b cursor-pointer border-gray-600 hover:bg-gray-600 ${index === currentTrackIndex ? 'bg-gray-600' : ''} group`}
                 onClick={() => {
                   setCurrentTrackIndex(index);
                   setIsPlaying(true);
@@ -335,12 +332,17 @@ export default function MusicPlayer() {
                   : <div className='pr-3 text-sm'>{index + 1}</div>
                 }
                 <div className='w-full flex items-center justify-between'>
-                  {/* <p className={`${index === currentTrackIndex ? 'ml-5' : ''} text-white`}>{track.name}</p>
-                  <p className={`${index === currentTrackIndex ? 'ml-5' : ''} text-white`}>{track.artist}</p> */}
+                  <div className='flex justify-center items-start gap-x-2'>
+                    <img 
+                    src={track.picture} 
+                    alt={track.title} 
+                    className={`${index === currentTrackIndex ? 'ml-6.5' : ''} size-10`}
+                  />
 
                   <div className='flex flex-col items-start text-sm'>
-                    <h3 className={`${index === currentTrackIndex ? 'ml-5' : ''} font-semibold text-white`}> {track.name}</h3>
-                    <h3 className={`${index === currentTrackIndex ? 'ml-5' : ''} text-gray-400 font-normal`}>{track.artist}</h3>
+                    <h3 className={` font-semibold text-white`}> {track.name}</h3>
+                    <h3 className={` text-gray-400 font-normal`}>{track.artist}</h3>
+                  </div>
                   </div>
 
                   <p className={` text-white text-sm`}>{formatTime(track.duration)}</p>
