@@ -138,6 +138,9 @@ export default function MusicPlayer() {
   
   // Formatear tiempo en formato MM:SS
   const formatTime = (timeInSeconds) => {
+
+    if (!timeInSeconds) return '0:00';
+
     const minutes = Math.floor(timeInSeconds / 60);
     const seconds = Math.floor(timeInSeconds % 60);
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
@@ -220,9 +223,9 @@ export default function MusicPlayer() {
       <div className="w-48 mb-4 text-center bg-slate-6000">
         {playlist.length > 0 ? (
           <div className='flex justify-between items-center'>
-            <div className='flex flex-col items-start'>
-              <h3 className="text-xl font-semibold text-white"> {playlist[currentTrackIndex].name}</h3>
-              <h3 className='text-sm text-gray-400 font-normal'>{playlist[currentTrackIndex].artist}</h3>
+            <div className='flex flex-col items-start text-sm'>
+              <h3 className=" font-semibold text-white"> {playlist[currentTrackIndex].name}</h3>
+              <h3 className=' text-gray-400 font-normal'>{playlist[currentTrackIndex].artist}</h3>
               {/* <p className="text-gray-400 text-sm">Pista {currentTrackIndex + 1} de {playlist.length}</p> */}
             </div>
             <button onClick={ alternateShowSongInfo } className='p-1.5 rounded-full'>
@@ -249,7 +252,7 @@ export default function MusicPlayer() {
           onChange={handleProgressChange}
           className="flex-grow w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer duration-300"
         />
-        <span className="ml-2 text-sm text-gray-400">{formatTime(duration)}</span>
+        <span className="ml-2 text-sm text-gray-400">{formatTime(playlist[currentTrackIndex]?.duration)}</span>
         </div>
 
         {/* Control de volumen */}
@@ -332,7 +335,11 @@ export default function MusicPlayer() {
                     </div>
                   : <div className='pr-3'>{index + 1}</div>
                 }
-                <p className={`${index === currentTrackIndex ? 'ml-5' : ''} text-white`}>{track.name}</p>
+                <div className='w-full flex items-center justify-between'>
+                  <p className={`${index === currentTrackIndex ? 'ml-5' : ''} text-white`}>{track.name}</p>
+                  <p className={`${index === currentTrackIndex ? 'ml-5' : ''} text-white`}>{track.artist}</p>
+                  <p className={` text-white`}>{formatTime(track.duration)}</p>
+                </div>
               </li>
             ))}
           </ul>
