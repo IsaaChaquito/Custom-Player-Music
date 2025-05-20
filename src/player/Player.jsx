@@ -180,9 +180,8 @@ export default function MusicPlayer() {
   }
   
   return (
-    <div className="flex flex-col items-center w-full sm:w-3xl min-h-screen  p-6 mx-auto bg-gray-800 sm:rounded-lg shadow-lg">
-      {/* <h2 className="mb-6 text-2xl font-bold text-white ">Reproductor de música</h2> */}
-      
+    <div className="flex flex-col items-center w-full sm:w-3xl min-h-screen  p-6 mx-auto bg-gray-800 bg-gradient-to-t from-gray-700 via-gray-900 to-black sm:rounded-lg shadow-lg">
+
       {/* Área de carga de archivos */}
       <div className="rounded-full mb-6 aspect-square">
         <label className="rounded-full flex items-center justify-center p-4 bg-gray-700 border-2 border-dashed cursor-pointer hover:bg-gray-600 border-gray-500">
@@ -333,12 +332,18 @@ export default function MusicPlayer() {
                       <div className="bar bar-2"></div>
                       <div className="bar bar-3"></div>
                     </div>
-                  : <div className='pr-3'>{index + 1}</div>
+                  : <div className='pr-3 text-sm'>{index + 1}</div>
                 }
                 <div className='w-full flex items-center justify-between'>
-                  <p className={`${index === currentTrackIndex ? 'ml-5' : ''} text-white`}>{track.name}</p>
-                  <p className={`${index === currentTrackIndex ? 'ml-5' : ''} text-white`}>{track.artist}</p>
-                  <p className={` text-white`}>{formatTime(track.duration)}</p>
+                  {/* <p className={`${index === currentTrackIndex ? 'ml-5' : ''} text-white`}>{track.name}</p>
+                  <p className={`${index === currentTrackIndex ? 'ml-5' : ''} text-white`}>{track.artist}</p> */}
+
+                  <div className='flex flex-col items-start text-sm'>
+                    <h3 className={`${index === currentTrackIndex ? 'ml-5' : ''} font-semibold text-white`}> {track.name}</h3>
+                    <h3 className={`${index === currentTrackIndex ? 'ml-5' : ''} text-gray-400 font-normal`}>{track.artist}</h3>
+                  </div>
+
+                  <p className={` text-white text-sm`}>{formatTime(track.duration)}</p>
                 </div>
               </li>
             ))}
