@@ -250,11 +250,11 @@ export default function MusicPlayer() {
       )}
       
       {/* Información de la canción actual */}
-      <div className="w-48 mb-4 text-center bg-slate-6000">
+      <div className="w-full mb-4 text-center bg-slate-6000">
         {player.playlist.length > 0 ? (
           <div className='flex justify-between items-center'>
             <div className='flex flex-col items-start text-sm text-start'>
-              <h3 className=" font-semibold text-white"> {player.playlist[player.currentTrackIndex].title}</h3>
+              <h3 className="font-semibold text-white overflow-hidden truncate"> {player.playlist[player.currentTrackIndex].title}</h3>
               <h3 className=' text-gray-400 font-normal'>{player.playlist[player.currentTrackIndex].artist}</h3>
             </div>
             <button onClick={ alternateShowSongInfo } className='p-1.5 rounded-full'>
