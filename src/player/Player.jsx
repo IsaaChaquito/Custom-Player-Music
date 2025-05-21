@@ -231,15 +231,15 @@ export default function MusicPlayer() {
 
       {/* Imagen de la cancion */}
       {player.playlist.length > 0 && (
-        <div onClick={alternateShowSongInfo} className=" size-48 bg-gray-700d mb-6 *:rounded-lg overflow-hidden rounded-lg relative group shadow-mdd">
+        <div onClick={alternateShowSongInfo} className="size-68 bg-gray-700d mb-6 *:rounded-lg overflow-hidden rounded-lg relative group shadow-mdd">
             <img 
                 src={player.playlist[player.currentTrackIndex].picture} 
                 alt={player.playlist[player.currentTrackIndex].title} 
-                className="size-48 "
+                className="size-full "
               />
 
           {player.playlist[player.currentTrackIndex] &&
-            <div className={`flex flex-col gap-y-1 absolute top-0 left-0 size-48 bg-black opacity-0 border border-gray-500 group-hover:opacity-85 text-sm p-3 duration-300 ${player.showSongInfo ? 'opacity-85' : 'opacity-0'}`}>
+            <div className={`flex flex-col gap-y-1 absolute top-0 left-0 size-full bg-black opacity-0 border border-gray-500 group-hover:opacity-85 text-sm p-3 duration-300 ${player.showSongInfo ? 'opacity-85' : 'opacity-0'}`}>
               <h3 className="text-xl font-semibold text-white text-center"> {player.playlist[player.currentTrackIndex].title}</h3>
               <h3 className='text-sm text-gray-400 font-normal'>Artist: {player.playlist[player.currentTrackIndex].artist}</h3>
               <h3 className='text-sm text-gray-400 font-normal'>Album: {player.playlist[player.currentTrackIndex].album}</h3>
@@ -250,7 +250,7 @@ export default function MusicPlayer() {
       )}
       
       {/* Información de la canción actual */}
-      <div className="w-69 mb-4 text-center bg-slate-6000">
+      <div className="w-68 mb-4 text-center bg-slate-6000">
         {player.playlist.length > 0 ? (
           <div className='flex justify-between items-center'>
             <div className='flex flex-col items-start text-sm text-start'>
