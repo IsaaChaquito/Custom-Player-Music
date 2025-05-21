@@ -342,21 +342,21 @@ export default function MusicPlayer() {
       <div className="flex items-center justify-center w-full mb-6 space-x-6">
         <button 
           onClick={playPreviousTrack}
-          className="flex items-center justify-center p-2 text-white bg-indigo-700/10 hover:bg-black/20 rounded-full duration-1000"
+          className="flex items-center justify-center p-2 text-white bg-indigo-700/10 hover:bg-black/20 rounded-full duration-1000 shadow-sm"
         >
           <SkipBack size={24} />
         </button>
         
         <button 
           onClick={togglePlay}
-          className="flex items-center justify-center p-4 text-white bg-indigo-700/10 hover:bg-black/20 rounded-full duration-1000"
+          className={`flex items-center justify-center p-4 text-white bg-indigo-700/10 hover:bg-black/20 rounded-full duration-1000 ${player.isPlaying ? '' : 'shadow-sm'}`}
         >
           {player.isPlaying ? <Pause size={32} /> : <Play size={32} />}
         </button>
         
         <button 
           onClick={playNextTrack}
-          className="flex items-center justify-center p-2 text-white bg-indigo-700/10 hover:bg-black/20 rounded-full duration-1000"
+          className="flex items-center justify-center p-2 text-white bg-indigo-700/10 hover:bg-black/20 rounded-full duration-1000 shadow-sm"
         >
           <SkipForward size={24} />
         </button>
