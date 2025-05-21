@@ -250,7 +250,7 @@ export default function MusicPlayer() {
       )}
       
       {/* Información de la canción actual */}
-      <div className="w-full mb-4 text-center bg-slate-6000">
+      <div className="w-69 mb-4 text-center bg-slate-6000">
         {player.playlist.length > 0 ? (
           <div className='flex justify-between items-center'>
             <div className='flex flex-col items-start text-sm text-start'>
