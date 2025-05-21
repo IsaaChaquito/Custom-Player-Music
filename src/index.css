@@ -22,6 +22,7 @@
 
   --bar-background: rgb(245, 132, 12);
   --bar-background-2: rgb(123, 255, 83);
+  --progress-bar-color: rgb(255, 255, 255);
 }
 
 
@@ -58,7 +59,7 @@ input[type="range"]::-webkit-slider-thumb {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: rgb(255, 255, 255);
+  background: var(--progress-bar-color);
   cursor: pointer;
 }
 
@@ -66,7 +67,7 @@ input[type="range"]::-moz-range-thumb {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--bar-background);
+  background: var(--progress-bar-color);
   cursor: pointer;
 }
 
