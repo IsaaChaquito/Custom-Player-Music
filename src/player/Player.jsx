@@ -6,15 +6,27 @@ import { AddSongIcon, InfoItalicIcon } from '../assets/icons';
 // Componente principal del reproductor de música
 export default function MusicPlayer() {
   // Estado para almacenar los archivos de música cargados
-  const [playlist, setPlaylist] = useState([]);
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [volume, setVolume] = useState(0.7);
-  const [isMuted, setIsMuted] = useState(false);
-  const [volumeBarWidth, setVolumeBarWidth] = useState(0)
-  const [showSongInfo, setShowSongInfo] = useState(false);
+  // const [playlist, setPlaylist] = useState([]);
+  // const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  // const [isPlaying, setIsPlaying] = useState(false);
+  // const [duration, setDuration] = useState(0);
+  // const [currentTime, setCurrentTime] = useState(0);
+  // const [volume, setVolume] = useState(0.7);
+  // const [isMuted, setIsMuted] = useState(false);
+  // const [volumeBarWidth, setVolumeBarWidth] = useState(0)
+  // const [showSongInfo, setShowSongInfo] = useState(false);
+
+  const [player, setPlayer] = useState({
+    currentTime: 0,
+    currentTrackIndex: 0,
+    duration: 0,
+    isPlaying: false,
+    volume: 0.7,
+    isMuted: false,
+    showSongInfo: false,
+    volumeBarWidth: 0,
+    playlist: []
+  });
   
   // Referencias para manipular el elemento de audio
   const audioRef = useRef(null);
@@ -23,7 +35,7 @@ export default function MusicPlayer() {
   const handleFileUpload = async (e) => {
 
     const files = Array.from(e.target.files);
-
+    console.log('files', files);
     if (!files) return;
     console.log('files exist');
     const newPlaylist = await Promise.all(files.map( async file => {
@@ -32,101 +44,143 @@ export default function MusicPlayer() {
         const metadata = await parseBlob(file);
         
         const { common, format } =  metadata 
-        let picture = common?.picture[0]
+        const { title, artist, artists, album, picture, track, year, genre, isrc } = common
+        const { duration } = format
+        
+        if(validateExistingTrack(player.playlist, common?.isrc)) return
+
+        let albumPicture = picture[0]
         if (picture) {
-          const base64String = uint8ArrayToBase64(picture.data);
+          const base64String = uint8ArrayToBase64(picture[0].data);
           const mimeType = picture.format;
           const imageUrl = `data:${mimeType};base64,${base64String}`;
-          picture = imageUrl
+          albumPicture = imageUrl
         }
 
-        function uint8ArrayToBase64(uint8Array) {
-            let binary = '';
-            uint8Array.forEach((byte) => {
-              binary += String.fromCharCode(byte);
-            });
-            return window.btoa(binary);
-          }
 
         return {
-          name: common?.title,
-          artist: common?.artist,
-          artists: common?.artists,
-          album: common?.album,
-          track: common?.track?.no,
-          year: common?.year,
-          genre: common?.genre,
-          duration: format?.duration,
+          title: title || file.name.replace(/\.[^/.]+$/, ""),
+          artist: artist || "Artista desconocido",
+          artists: artists || [],
+          album: album || "Álbum desconocido",
+          track: track?.no,
+          year: year || "",
+          genre: genre ? genre : "Género desconocido",
+          duration: duration || 0,
           url: URL.createObjectURL(file),
-          picture,
+          isrc: isrc || null,
+          picture: albumPicture,
           file
         }
       } catch (error) {
         console.error("Error leyendo metadatos:", error);
       }
 
+      function uint8ArrayToBase64(uint8Array) {
+        let binary = '';
+        uint8Array.forEach((byte) => {
+          binary += String.fromCharCode(byte);
+        });
+        return window.btoa(binary);
+      }
+
     }))
 
 
     console.log({ newPlaylist });    
-    setPlaylist([...playlist, ...newPlaylist]);
+    // setPlaylist([...playlist, ...newPlaylist]);
+    setPlayer({ ...player, playlist: [...player.playlist, ...newPlaylist] });
+    // setPlayer( preState => ({ ...preState, playlist: [...preState.playlist, ...newPlaylist] }));
     
     // Si es la primera canción cargada, configurarla
-    if (playlist.length === 0 && newPlaylist.length > 0) {
-      setCurrentTrackIndex(0);
+    if (player.playlist.length === 0 && newPlaylist.length > 0) {
+      // setCurrentTrackIndex(0);
+      setPlayer( prevState => ({ ...prevState, currentTrackIndex: 0 }));
     }
+
+    function validateExistingTrack(playlist, isrc) {
+      console.log('playlist', player.playlist);
+      console.log('isrc', isrc);
+      // console.log('existing track', playlist.some(existingTrack => existingTrack.isrc === isrc));
+      if (!isrc) return false;
+      return player.playlist.some(existingTrack => existingTrack.isrc === isrc);
+    }
+
+    console.log(player.playlist);
   };
 
   
   // Controles de reproducción
   const togglePlay = () => {
-    if (playlist.length === 0) return;
-    
-    if (isPlaying) {
+    if (player.playlist.length === 0) return;
+    if (player.isPlaying) {
       audioRef.current.pause();
     } else {
       audioRef.current.play();
     }
-    setIsPlaying(!isPlaying);
+    // setIsPlaying(!isPlaying);
+    setPlayer({ ...player, isPlaying: !player.isPlaying });
   };
   
   const playPreviousTrack = () => {
-    if (playlist.length === 0) return;
+    if (player.playlist.length === 0) return;
     
-    const newIndex = currentTrackIndex === 0 ? playlist.length - 1 : currentTrackIndex - 1;
-    setCurrentTrackIndex(newIndex);
-    setIsPlaying(true);
+    const newIndex = player.currentTrackIndex === 0 ? player.playlist.length - 1 : player.currentTrackIndex - 1;
+    // setCurrentTrackIndex(newIndex);
+    // setIsPlaying(true);
+    setPlayer({ 
+      ...player, 
+      currentTrackIndex: newIndex, 
+      isPlaying: true 
+    });
+
   };
   
   const playNextTrack = () => {
-    if (playlist.length === 0) return;
+    if (player.playlist.length === 0) return;
     
-    const newIndex = (currentTrackIndex + 1) % playlist.length;
-    setCurrentTrackIndex(newIndex);
-    setIsPlaying(true);
+    const newIndex = (player.currentTrackIndex + 1) % player.playlist.length;
+    // setCurrentTrackIndex(newIndex);
+    // setIsPlaying(true);
+    setPlayer({ 
+      ...player, 
+      currentTrackIndex: newIndex, 
+      isPlaying: true 
+    });
   };
   
   // Control de volumen
   const toggleMute = () => {
-    setIsMuted(!isMuted);
+    // setIsMuted(!isMuted);
+    setPlayer({ ...player, isMuted: !player.isMuted });
   };
   
   const handleVolumeChange = (e) => {
     const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-    setIsMuted(newVolume === 0);
+    // setVolume(newVolume);
+    // setIsMuted(newVolume === 0);
+    setPlayer({ 
+      ...player, 
+      volume: newVolume, 
+      isMuted: newVolume === 0 
+    });
   };
   
   // Control de progreso
   const handleTimeUpdate = () => {
     if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime);
+      // setCurrentTime(audioRef.current.currentTime);
+      setPlayer({ ...player, currentTime: audioRef.current.currentTime });
     }
   };
   
   const handleProgressChange = (e) => {
     const newTime = parseFloat(e.target.value);
-    setCurrentTime(newTime);
+    // setCurrentTime(newTime);
+    setPlayer({ 
+      ...player, 
+      currentTime: newTime 
+    });
     
     if (audioRef.current) {
       audioRef.current.currentTime = newTime;
@@ -147,33 +201,37 @@ export default function MusicPlayer() {
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.onloadedmetadata = () => {
-        setDuration(audioRef.current.duration);
-        if (isPlaying) audioRef.current.play();
+        // setDuration(audioRef.current.duration);
+        setPlayer({ ...player, duration: audioRef.current.duration });
+        if (player.isPlaying) audioRef.current.play();
       };
       
       audioRef.current.onended = () => {
         playNextTrack();
       };
     }
-  }, [currentTrackIndex, playlist]);
+  }, [player.currentTrackIndex, player.playlist]);
   
   // Efecto para actualizar el volumen
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume;
+      audioRef.current.volume = player.isMuted ? 0 : player.volume;
     }
-  }, [volume, isMuted]);
+  }, [player.volume, player.isMuted]);
 
   const handleMouseEnter = () => {
-    setVolumeBarWidth(50)
+    // setVolumeBarWidth(50)
+    setPlayer({ ...player, volumeBarWidth: 50 })
   }
 
   const handleMouseLeave = () => {
-    setVolumeBarWidth(0)
+    // setVolumeBarWidth(0)
+    setPlayer({ ...player, volumeBarWidth: 0 })
   }
 
   const alternateShowSongInfo = () => {
-    setShowSongInfo(!showSongInfo)
+    // setShowSongInfo(!showSongInfo)
+    setPlayer({ ...player, showSongInfo: !player.showSongInfo })
   }
   
   return (
@@ -196,32 +254,32 @@ export default function MusicPlayer() {
       </div>
 
       {/* Imagen de la cancion */}
-      {playlist.length > 0 && (
-        <div onClick={alternateShowSongInfo} className="mb-6 *:rounded-lg relative group shadow-md">
+      {player.playlist.length > 0 && (
+        <div onClick={alternateShowSongInfo} className="mb-6 *:rounded-lg relative group shadow-mdd">
             <img 
-                src={playlist[currentTrackIndex].picture} 
-                alt={playlist[currentTrackIndex].title} 
+                src={player.playlist[player.currentTrackIndex].picture} 
+                alt={player.playlist[player.currentTrackIndex].title} 
                 className="size-48 "
               />
 
-          {playlist[currentTrackIndex] &&
-            <div className={`flex flex-col gap-y-1 absolute top-0 left-0 size-48 bg-black opacity-0 group-hover:opacity-85 text-sm p-3 duration-300 ${showSongInfo ? 'opacity-85' : 'opacity-0'}`}>
-              <h3 className="text-xl font-semibold text-white text-center"> {playlist[currentTrackIndex].name}</h3>
-              <h3 className='text-sm text-gray-400 font-normal'>Artist: {playlist[currentTrackIndex].artist}</h3>
-              <h3 className='text-sm text-gray-400 font-normal'>Album: {playlist[currentTrackIndex].album}</h3>
-              <h3 className='text-sm text-gray-400 font-normal'>Year: {playlist[currentTrackIndex].year}</h3>
-              <h3 className='text-sm text-gray-400 font-normal'>Genre: {playlist[currentTrackIndex].genre.join(', ')}</h3>
+          {player.playlist[player.currentTrackIndex] &&
+            <div className={`flex flex-col gap-y-1 absolute top-0 left-0 size-48 bg-black opacity-0 border border-gray-500 group-hover:opacity-85 text-sm p-3 duration-300 ${player.showSongInfo ? 'opacity-85' : 'opacity-0'}`}>
+              <h3 className="text-xl font-semibold text-white text-center"> {player.playlist[player.currentTrackIndex].title}</h3>
+              <h3 className='text-sm text-gray-400 font-normal'>Artist: {player.playlist[player.currentTrackIndex].artist}</h3>
+              <h3 className='text-sm text-gray-400 font-normal'>Album: {player.playlist[player.currentTrackIndex].album}</h3>
+              <h3 className='text-sm text-gray-400 font-normal'>Year: {player.playlist[player.currentTrackIndex].year}</h3>
+              <h3 className='text-sm text-gray-400 font-normal'>Genre: {player.playlist[player.currentTrackIndex].genre.join(', ')}</h3>
             </div>}
         </div>
       )}
       
       {/* Información de la canción actual */}
       <div className="w-48 mb-4 text-center bg-slate-6000">
-        {playlist.length > 0 ? (
+        {player.playlist.length > 0 ? (
           <div className='flex justify-between items-center'>
             <div className='flex flex-col items-start text-sm'>
-              <h3 className=" font-semibold text-white"> {playlist[currentTrackIndex].name}</h3>
-              <h3 className=' text-gray-400 font-normal'>{playlist[currentTrackIndex].artist}</h3>
+              <h3 className=" font-semibold text-white"> {player.playlist[player.currentTrackIndex].title}</h3>
+              <h3 className=' text-gray-400 font-normal'>{player.playlist[player.currentTrackIndex].artist}</h3>
               {/* <p className="text-gray-400 text-sm">Pista {currentTrackIndex + 1} de {playlist.length}</p> */}
             </div>
             <button onClick={ alternateShowSongInfo } className='p-1.5 rounded-full'>
@@ -237,18 +295,19 @@ export default function MusicPlayer() {
 
         {/* Barra de progreso */}
         <div className='flex items-center w-full duration-300'>
-          <span className="mr-2 text-sm text-gray-400">{formatTime(currentTime)}</span>
+          <span className="mr-2 text-sm text-gray-400">{formatTime(player.currentTime)}</span>
         <input 
+          id="progressBar"
           ref={progressBarRef}
           type="range" 
           min="0" 
-          max={duration || 0} 
-          value={currentTime} 
+          max={player.duration || 0} 
+          value={player.currentTime} 
           step="0.01"
           onChange={handleProgressChange}
-          className="flex-grow w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer duration-300"
+          className="flex-grow w-full h-0.5 bg-white rounded-lg appearance-none cursor-pointer duration-300"
         />
-        <span className="ml-2 text-sm text-gray-400">{formatTime(playlist[currentTrackIndex]?.duration)}</span>
+        <span className="ml-2 text-sm text-gray-400">{formatTime(player.playlist[player.currentTrackIndex]?.duration)}</span>
         </div>
 
         {/* Control de volumen */}
@@ -260,19 +319,19 @@ export default function MusicPlayer() {
           <button 
             onClick={toggleMute} 
             className="mr-2 text-white">
-            {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+            {player.isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
           </button>
           
           <input 
             style={{
-              maxWidth: `${volumeBarWidth}px`,  
-              opacity: `${volumeBarWidth > 0 ? 1 : 0}`
+              maxWidth: `${player.volumeBarWidth}px`,  
+              opacity: `${player.volumeBarWidth > 0 ? 1 : 0}`
             }}
             type="range" 
             min="0" 
             max="1" 
             step="0.01" 
-            value={volume}
+            value={player.volume}
             onChange={handleVolumeChange}
             className={`w-40 h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer   transition-transform duration-300 ease-in-out `}
           />
@@ -283,21 +342,21 @@ export default function MusicPlayer() {
       <div className="flex items-center justify-center w-full mb-6 space-x-6">
         <button 
           onClick={playPreviousTrack}
-          className="flex items-center justify-center p-2 text-white bg-gray-700 rounded-full hover:bg-gray-600"
+          className="flex items-center justify-center p-2 text-white bg-indigo-700/10 hover:bg-black/20 rounded-full duration-1000"
         >
           <SkipBack size={24} />
         </button>
         
         <button 
           onClick={togglePlay}
-          className="flex items-center justify-center p-4 text-white bg-blue-600 rounded-full hover:bg-blue-500"
+          className="flex items-center justify-center p-4 text-white bg-indigo-700/10 hover:bg-black/20 rounded-full duration-1000"
         >
-          {isPlaying ? <Pause size={32} /> : <Play size={32} />}
+          {player.isPlaying ? <Pause size={32} /> : <Play size={32} />}
         </button>
         
         <button 
           onClick={playNextTrack}
-          className="flex items-center justify-center p-2 text-white bg-gray-700 rounded-full hover:bg-gray-600"
+          className="flex items-center justify-center p-2 text-white bg-indigo-700/10 hover:bg-black/20 rounded-full duration-1000"
         >
           <SkipForward size={24} />
         </button>
@@ -307,23 +366,24 @@ export default function MusicPlayer() {
       
       
       {/* Lista de reproducción */}
-      {playlist.length > 0 && (
+      {player.playlist.length > 0 && (
         <>
           <h3 className="mb-2 text-lg font-semibold text-white">Playlist</h3>
         <div className="w-full max-h-96 overflow-y-auto rounded-lg">
 
 
           <ul className="bg-gray-700">
-            {playlist.map((track, index) => (
+            {player.playlist.map((track, index) => (
               <li 
                 key={index} 
-                className={`relative flex items-center p-3 border-b cursor-pointer border-gray-600 hover:bg-gray-600 ${index === currentTrackIndex ? 'bg-gray-600' : ''} group`}
+                className={`relative flex items-center p-3 border-b cursor-pointer border-gray-600 hover:bg-gray-600 ${index === player.currentTrackIndex ? 'bg-gray-600' : ''} group`}
                 onClick={() => {
-                  setCurrentTrackIndex(index);
-                  setIsPlaying(true);
+                  // setCurrentTrackIndex(index);
+                  // setIsPlaying(true);
+                  setPlayer({ ...player, currentTrackIndex: index, isPlaying: true });
                 }}
               >
-                {index === currentTrackIndex 
+                {index === player.currentTrackIndex 
                   ? <div className="flex gap-3 absolute -left-3" style={{scale: 0.2}}>
                       <div className="bar bar-1"></div>
                       <div className="bar bar-2"></div>
@@ -336,11 +396,11 @@ export default function MusicPlayer() {
                     <img 
                     src={track.picture} 
                     alt={track.title} 
-                    className={`${index === currentTrackIndex ? 'ml-6.5' : ''} size-10`}
+                    className={`${index === player.currentTrackIndex ? 'ml-6.5' : ''} size-10 rounded`}
                   />
 
                   <div className='flex flex-col items-start text-sm'>
-                    <h3 className={` font-semibold text-white`}> {track.name}</h3>
+                    <h3 className={` font-semibold text-white`}> {track.title}</h3>
                     <h3 className={` text-gray-400 font-normal`}>{track.artist}</h3>
                   </div>
                   </div>
@@ -358,10 +418,13 @@ export default function MusicPlayer() {
       {/* Elemento de audio oculto */}
       <audio
         ref={audioRef}
-        src={playlist.length > 0 ? playlist[currentTrackIndex].url : '0'}
+        src={player.playlist.length > 0 ? player.playlist[player.currentTrackIndex].url : '0'}
         onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={() => setDuration(audioRef.current.duration)}
-        autoPlay={isPlaying}
+        onLoadedMetadata={() => 
+          // setDuration(audioRef.current.duration) 
+          setPlayer({ ...player, duration: audioRef.current.duration })
+        }
+        autoPlay={player.isPlaying}
       />
     </div>
   );
