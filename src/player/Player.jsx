@@ -257,7 +257,7 @@ export default function MusicPlayer() {
               <h3 className="font-semibold text-white overflow-hidden truncate"> {player.playlist[player.currentTrackIndex].title}</h3>
               <h3 className=' text-gray-400 font-normal'>{player.playlist[player.currentTrackIndex].artist}</h3>
             </div>
-            <button onClick={ alternateShowSongInfo } className='p-1.5 rounded-full'>
+            <button onClick={ alternateShowSongInfo } className=' rounded-full'>
               <InfoItalicIcon className="w-5.5 h-5.5 text-gray-400" />
             </button>
           </div>
