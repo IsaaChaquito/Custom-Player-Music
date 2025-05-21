@@ -5,17 +5,8 @@ import { AddSongIcon, InfoItalicIcon } from '../assets/icons';
 
 // Componente principal del reproductor de música
 export default function MusicPlayer() {
-  // Estado para almacenar los archivos de música cargados
-  // const [playlist, setPlaylist] = useState([]);
-  // const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-  // const [isPlaying, setIsPlaying] = useState(false);
-  // const [duration, setDuration] = useState(0);
-  // const [currentTime, setCurrentTime] = useState(0);
-  // const [volume, setVolume] = useState(0.7);
-  // const [isMuted, setIsMuted] = useState(false);
-  // const [volumeBarWidth, setVolumeBarWidth] = useState(0)
-  // const [showSongInfo, setShowSongInfo] = useState(false);
-
+  
+  // Player music state
   const [player, setPlayer] = useState({
     currentTime: 0,
     currentTrackIndex: 0,
@@ -32,81 +23,75 @@ export default function MusicPlayer() {
   const audioRef = useRef(null);
   const progressBarRef = useRef(null);
 
-  const handleFileUpload = async (e) => {
+ 
 
-    const files = Array.from(e.target.files);
-    console.log('files', files);
-    if (!files) return;
-    console.log('files exist');
-    const newPlaylist = await Promise.all(files.map( async file => {
+    const handleFileUpload = async (e) => {
+      const files = Array.from(e.target.files);
+      if (!files || files.length === 0) return;
 
-      try {
-        const metadata = await parseBlob(file);
-        
-        const { common, format } =  metadata 
-        const { title, artist, artists, album, picture, track, year, genre, isrc } = common
-        const { duration } = format
-        
-        if(validateExistingTrack(player.playlist, common?.isrc)) return
+      // Primero procesamos todos los archivos
+      const processedFiles = await Promise.all(files.map(async file => {
+        try {
+          const metadata = await parseBlob(file);
+          const { common, format } = metadata;
+          const { title, artist, artists, album, picture, track, year, genre, isrc } = common;
+          const { duration } = format;
 
-        let albumPicture = picture[0]
-        if (picture) {
-          const base64String = uint8ArrayToBase64(picture[0].data);
-          const mimeType = picture.format;
-          const imageUrl = `data:${mimeType};base64,${base64String}`;
-          albumPicture = imageUrl
+          // Verificar si la canción ya existe en la playlist actual
+          const isDuplicate = isrc && player.playlist.some(existingTrack => existingTrack.isrc[0] === isrc[0]);
+          if (isDuplicate) return null;
+
+          let albumPicture = null;
+          if (picture && picture[0]) {
+              const base64String = uint8ArrayToBase64(picture[0].data);
+              const mimeType = picture[0].format;
+              albumPicture = `data:${mimeType};base64,${base64String}`;
+          }
+
+          return {
+              title: title || file.name.replace(/\.[^/.]+$/, ""),
+              artist: artist || "Artista desconocido",
+              artists: artists || [],
+              album: album || "Álbum desconocido",
+              track: track?.no,
+              year: year || "",
+              genre: genre ? genre : "Género desconocido",
+              duration: duration || 0,
+              url: URL.createObjectURL(file),
+              isrc: isrc || null,
+              picture: albumPicture,
+              file
+          };
+        } catch (error) {
+            console.error("Error leyendo metadatos:", error);
+            return null;
         }
+      }));
 
+    // Filtrar nulos (canciones duplicadas o con error)
+    const validNewTracks = processedFiles.filter(track => track !== null);
 
+    if (validNewTracks.length === 0) return;
+
+    // Actualizar el estado con las nuevas canciones
+    setPlayer(prevState => {
+        const newPlaylist = [...prevState.playlist, ...validNewTracks];
+        const shouldSetCurrentTrack = prevState.playlist.length === 0 && validNewTracks.length > 0;
+        
         return {
-          title: title || file.name.replace(/\.[^/.]+$/, ""),
-          artist: artist || "Artista desconocido",
-          artists: artists || [],
-          album: album || "Álbum desconocido",
-          track: track?.no,
-          year: year || "",
-          genre: genre ? genre : "Género desconocido",
-          duration: duration || 0,
-          url: URL.createObjectURL(file),
-          isrc: isrc || null,
-          picture: albumPicture,
-          file
-        }
-      } catch (error) {
-        console.error("Error leyendo metadatos:", error);
-      }
+            ...prevState,
+            playlist: newPlaylist,
+            currentTrackIndex: shouldSetCurrentTrack ? 0 : prevState.currentTrackIndex
+        };
+    });
 
-      function uint8ArrayToBase64(uint8Array) {
+    function uint8ArrayToBase64(uint8Array) {
         let binary = '';
         uint8Array.forEach((byte) => {
-          binary += String.fromCharCode(byte);
+            binary += String.fromCharCode(byte);
         });
         return window.btoa(binary);
-      }
-
-    }))
-
-
-    console.log({ newPlaylist });    
-    // setPlaylist([...playlist, ...newPlaylist]);
-    setPlayer({ ...player, playlist: [...player.playlist, ...newPlaylist] });
-    // setPlayer( preState => ({ ...preState, playlist: [...preState.playlist, ...newPlaylist] }));
-    
-    // Si es la primera canción cargada, configurarla
-    if (player.playlist.length === 0 && newPlaylist.length > 0) {
-      // setCurrentTrackIndex(0);
-      setPlayer( prevState => ({ ...prevState, currentTrackIndex: 0 }));
     }
-
-    function validateExistingTrack(playlist, isrc) {
-      console.log('playlist', player.playlist);
-      console.log('isrc', isrc);
-      // console.log('existing track', playlist.some(existingTrack => existingTrack.isrc === isrc));
-      if (!isrc) return false;
-      return player.playlist.some(existingTrack => existingTrack.isrc === isrc);
-    }
-
-    console.log(player.playlist);
   };
 
   
@@ -118,7 +103,7 @@ export default function MusicPlayer() {
     } else {
       audioRef.current.play();
     }
-    // setIsPlaying(!isPlaying);
+
     setPlayer({ ...player, isPlaying: !player.isPlaying });
   };
   
@@ -126,8 +111,7 @@ export default function MusicPlayer() {
     if (player.playlist.length === 0) return;
     
     const newIndex = player.currentTrackIndex === 0 ? player.playlist.length - 1 : player.currentTrackIndex - 1;
-    // setCurrentTrackIndex(newIndex);
-    // setIsPlaying(true);
+
     setPlayer({ 
       ...player, 
       currentTrackIndex: newIndex, 
@@ -140,8 +124,7 @@ export default function MusicPlayer() {
     if (player.playlist.length === 0) return;
     
     const newIndex = (player.currentTrackIndex + 1) % player.playlist.length;
-    // setCurrentTrackIndex(newIndex);
-    // setIsPlaying(true);
+
     setPlayer({ 
       ...player, 
       currentTrackIndex: newIndex, 
@@ -151,14 +134,12 @@ export default function MusicPlayer() {
   
   // Control de volumen
   const toggleMute = () => {
-    // setIsMuted(!isMuted);
     setPlayer({ ...player, isMuted: !player.isMuted });
   };
   
   const handleVolumeChange = (e) => {
     const newVolume = parseFloat(e.target.value);
-    // setVolume(newVolume);
-    // setIsMuted(newVolume === 0);
+
     setPlayer({ 
       ...player, 
       volume: newVolume, 
@@ -169,14 +150,13 @@ export default function MusicPlayer() {
   // Control de progreso
   const handleTimeUpdate = () => {
     if (audioRef.current) {
-      // setCurrentTime(audioRef.current.currentTime);
       setPlayer({ ...player, currentTime: audioRef.current.currentTime });
     }
   };
   
   const handleProgressChange = (e) => {
     const newTime = parseFloat(e.target.value);
-    // setCurrentTime(newTime);
+
     setPlayer({ 
       ...player, 
       currentTime: newTime 
@@ -201,7 +181,6 @@ export default function MusicPlayer() {
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.onloadedmetadata = () => {
-        // setDuration(audioRef.current.duration);
         setPlayer({ ...player, duration: audioRef.current.duration });
         if (player.isPlaying) audioRef.current.play();
       };
@@ -220,17 +199,14 @@ export default function MusicPlayer() {
   }, [player.volume, player.isMuted]);
 
   const handleMouseEnter = () => {
-    // setVolumeBarWidth(50)
     setPlayer({ ...player, volumeBarWidth: 50 })
   }
 
   const handleMouseLeave = () => {
-    // setVolumeBarWidth(0)
     setPlayer({ ...player, volumeBarWidth: 0 })
   }
 
   const alternateShowSongInfo = () => {
-    // setShowSongInfo(!showSongInfo)
     setPlayer({ ...player, showSongInfo: !player.showSongInfo })
   }
   
@@ -277,10 +253,9 @@ export default function MusicPlayer() {
       <div className="w-48 mb-4 text-center bg-slate-6000">
         {player.playlist.length > 0 ? (
           <div className='flex justify-between items-center'>
-            <div className='flex flex-col items-start text-sm'>
+            <div className='flex flex-col items-start text-sm text-start'>
               <h3 className=" font-semibold text-white"> {player.playlist[player.currentTrackIndex].title}</h3>
               <h3 className=' text-gray-400 font-normal'>{player.playlist[player.currentTrackIndex].artist}</h3>
-              {/* <p className="text-gray-400 text-sm">Pista {currentTrackIndex + 1} de {playlist.length}</p> */}
             </div>
             <button onClick={ alternateShowSongInfo } className='p-1.5 rounded-full'>
               <InfoItalicIcon className="w-5.5 h-5.5 text-gray-400" />
@@ -377,11 +352,9 @@ export default function MusicPlayer() {
               <li 
                 key={index} 
                 className={`relative flex items-center p-3 border-b cursor-pointer border-gray-600 hover:bg-gray-600 ${index === player.currentTrackIndex ? 'bg-gray-600' : ''} group`}
-                onClick={() => {
-                  // setCurrentTrackIndex(index);
-                  // setIsPlaying(true);
-                  setPlayer({ ...player, currentTrackIndex: index, isPlaying: true });
-                }}
+                onClick={() => 
+                  setPlayer({ ...player, currentTrackIndex: index, isPlaying: true })
+                }
               >
                 {index === player.currentTrackIndex 
                   ? <div className="flex gap-3 absolute -left-3" style={{scale: 0.2}}>
@@ -421,7 +394,6 @@ export default function MusicPlayer() {
         src={player.playlist.length > 0 ? player.playlist[player.currentTrackIndex].url : '0'}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={() => 
-          // setDuration(audioRef.current.duration) 
           setPlayer({ ...player, duration: audioRef.current.duration })
         }
         autoPlay={player.isPlaying}
