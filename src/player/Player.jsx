@@ -231,7 +231,7 @@ export default function MusicPlayer() {
 
       {/* Imagen de la cancion */}
       {player.playlist.length > 0 && (
-        <div onClick={alternateShowSongInfo} className="mb-6 *:rounded-lg relative group shadow-mdd">
+        <div onClick={alternateShowSongInfo} className=" size-48 bg-gray-700d mb-6 *:rounded-lg overflow-hidden rounded-lg relative group shadow-mdd">
             <img 
                 src={player.playlist[player.currentTrackIndex].picture} 
                 alt={player.playlist[player.currentTrackIndex].title} 
