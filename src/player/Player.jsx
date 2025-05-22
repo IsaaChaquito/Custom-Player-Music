@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Repeat1 } from 'lucide-react';
 import { parseBlob } from 'music-metadata-browser';
 import { AddSongIcon, RemoveIcon } from '../assets/icons'; 
-import circleSplash from '../assets/images/circle-splash.svg';
+
 
 // Componente principal del reproductor de música
 export default function MusicPlayer() {
@@ -258,30 +258,15 @@ export default function MusicPlayer() {
   return (
     <div className="flex flex-col items-center w-full sm:w-3xl min-h-screen  p-6 mx-auto bg-gray-800 bg-gradient-to-t from-gray-700 via-gray-900 to-black sm:rounded-lg shadow-lg">
 
-      {/* Área de carga de archivos */}
-      <div className="rounded-full mb-6 aspect-square">
-        <label className="rounded-full flex items-center justify-center p-4 bg-gray-700 border-2 border-dashed cursor-pointer hover:bg-gray-600 border-gray-500">
-          <span className="text-gray-300">
-            <AddSongIcon className="w-6 h-6" />
-          </span>
-          <input 
-            type="file" 
-            accept="audio/*" 
-            multiple 
-            className="hidden" 
-            onChange={handleFileUpload} 
-          />
-        </label>
-      </div>
+      
 
       {/* Imagen de la cancion */}
       {player.playlist.length > 0 && (
         <div onClick={ alternateShowSongInfo } className="size-68 bg-gray-700d mb-6 *:rounded-lg overflow-hidden rounded-lg relative  shadow-mdd">
             <img 
                 src={player.playlist[player.currentTrackIndex].picture} 
-                // src={'https://i.pinimg.com/1200x/4a/c9/dc/4ac9dc1b9039f6e85575fc8927ae2b3e.jpg'} 
                 alt={player.playlist[player.currentTrackIndex].title} 
-                className="size-full "
+                className="size-full"
               />
 
           {player.playlist[player.currentTrackIndex] &&
@@ -360,7 +345,7 @@ export default function MusicPlayer() {
       </div>
       
       {/* Controles de reproducción */}
-      <div className="flex items-center justify-center w-full mb-6 space-x-6">
+      <div className="flex items-center justify-center w-full mb-1 space-x-6">
 
         <button 
           onClick={ toggleShuffleMode }
@@ -378,7 +363,7 @@ export default function MusicPlayer() {
         
         <button 
           onClick={ (e) => {togglePlay(), rippleEffect(e) }}
-          className={`mask-[url(assets/images/circle-splash.svg)] relative overflow-hidden flex items-center justify-center p-4 text-white bg-indigo-700/100 hover:bg-black/20d rounded-fulld duration-300 ${player.isPlaying ? '' : 'shadow-sm'}`}
+          className={`aspect-square w-full mask-[url(assets/images/heart-2.png)] mask-contain relative overflow-hidden flex items-center justify-center p-4d text-white bg-red-950 rounded-full duration-300 ${player.isPlaying ? '' : 'shadow-sm'}`}
         >
           {player.isPlaying ? <Pause size={32} /> : <Play size={32} />}
         </button>
@@ -412,7 +397,31 @@ export default function MusicPlayer() {
       {/* Lista de reproducción */}
       {player.playlist.length > 0 && (
         <>
-          <h3 className="mb-2 text-lg font-semibold text-white">Playlist</h3>
+        
+        <div className='flex items- justify-between w-68 mb-6'>
+          <h3 className=" text-lg font-semibold text-white">Playlist</h3>
+          
+          {/* Área de carga de archivos */}
+          <div className="rounded-full ">
+            <label className="rounded-full flex items-center justify-center py-1 px-2 bg-gray-700 border-2 border-dashed cursor-pointer hover:bg-gray-600 border-gray-500">
+              <span className="text-gray-300 text-xs flex items-center justify-center gap-x-1">
+                add song
+                <AddSongIcon className="w-5 h-5" />
+              </span>
+              <input 
+                type="file" 
+                accept="audio/*" 
+                multiple 
+                className="hidden" 
+                onChange={handleFileUpload} 
+              />
+            </label>
+          </div>
+
+          
+
+        </div>
+
         <div className="w-full max-h-96 overflow-y-auto rounded-lg">
 
 
