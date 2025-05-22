@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Info } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Repeat1 } from 'lucide-react';
 import { parseBlob } from 'music-metadata-browser';
-import { AddSongIcon, InfoItalicIcon } from '../assets/icons'; 
+import { AddSongIcon, RemoveIcon } from '../assets/icons'; 
 
 // Componente principal del reproductor de música
 export default function MusicPlayer() {
@@ -16,14 +16,14 @@ export default function MusicPlayer() {
     isMuted: false,
     showSongInfo: false,
     volumeBarWidth: 0,
-    playlist: []
+    playlist: [],
+    repeatMode: 'repeat-all',
+    shuffleMode: false
   });
   
   // Referencias para manipular el elemento de audio
   const audioRef = useRef(null);
   const progressBarRef = useRef(null);
-
- 
 
     const handleFileUpload = async (e) => {
       const files = Array.from(e.target.files);
@@ -209,6 +209,26 @@ export default function MusicPlayer() {
   const alternateShowSongInfo = () => {
     setPlayer({ ...player, showSongInfo: !player.showSongInfo })
   }
+
+  const removeFromPlaylist = (index) => {
+    const newPlaylist = [...player.playlist];
+    newPlaylist.splice(index, 1);
+    setPlayer({ ...player, playlist: newPlaylist, currentTrackIndex: index-1 === -1 ? 0 : index-1 });
+  }
+
+  const toggleRepeatMode = () => {
+    setPlayer({ 
+      ...player, 
+      repeatMode: player.repeatMode === 'repeat-all' ? 'repeat-one' : player.repeatMode === 'repeat-one' ? 'none' : 'repeat-all' 
+    })
+  }
+
+  const toggleShuffleMode = () => {
+    setPlayer({ 
+      ...player, 
+      shuffleMode: !player.shuffleMode 
+    })
+  }
   
   return (
     <div className="flex flex-col items-center w-full sm:w-3xl min-h-screen  p-6 mx-auto bg-gray-800 bg-gradient-to-t from-gray-700 via-gray-900 to-black sm:rounded-lg shadow-lg">
@@ -231,7 +251,7 @@ export default function MusicPlayer() {
 
       {/* Imagen de la cancion */}
       {player.playlist.length > 0 && (
-        <div onClick={alternateShowSongInfo} className="size-68 bg-gray-700d mb-6 *:rounded-lg overflow-hidden rounded-lg relative group shadow-mdd">
+        <div onClick={alternateShowSongInfo} className="size-68 bg-gray-700d mb-6 *:rounded-lg overflow-hidden rounded-lg relative  shadow-mdd">
             <img 
                 src={player.playlist[player.currentTrackIndex].picture} 
                 alt={player.playlist[player.currentTrackIndex].title} 
@@ -239,7 +259,7 @@ export default function MusicPlayer() {
               />
 
           {player.playlist[player.currentTrackIndex] &&
-            <div className={`flex flex-col gap-y-1 absolute top-0 left-0 size-full bg-black opacity-0 border border-gray-500 group-hover:opacity-85 text-sm p-3 duration-300 ${player.showSongInfo ? 'opacity-85' : 'opacity-0'}`}>
+            <div className={`flex flex-col gap-y-1 absolute top-0 left-0 size-full bg-black  border border-gray-500 text-sm p-3 duration-300 ${player.showSongInfo ? 'opacity-85' : 'opacity-0'}`}>
               <h3 className="text-xl font-semibold text-white text-center"> {player.playlist[player.currentTrackIndex].title}</h3>
               <h3 className='text-sm text-gray-400 font-normal'>Artist: {player.playlist[player.currentTrackIndex].artist}</h3>
               <h3 className='text-sm text-gray-400 font-normal'>Album: {player.playlist[player.currentTrackIndex].album}</h3>
@@ -257,8 +277,8 @@ export default function MusicPlayer() {
               <h3 className="font-semibold text-white overflow-hidden truncate"> {player.playlist[player.currentTrackIndex].title}</h3>
               <h3 className=' text-gray-400 font-normal'>{player.playlist[player.currentTrackIndex].artist}</h3>
             </div>
-            <button onClick={ alternateShowSongInfo } className=' rounded-full'>
-              <InfoItalicIcon className="w-5.5 h-5.5 text-gray-400" />
+            <button onClick={ ()=> removeFromPlaylist( player.currentTrackIndex ) } className=' rounded-full'>
+              <RemoveIcon className="w-5.5 h-5.5 text-white " />
             </button>
           </div>
         ) : (
@@ -315,6 +335,14 @@ export default function MusicPlayer() {
       
       {/* Controles de reproducción */}
       <div className="flex items-center justify-center w-full mb-6 space-x-6">
+
+        <button 
+          onClick={ toggleShuffleMode }
+          className="flex items-center justify-center p-2 text-white "
+        >
+          <Shuffle size={20} className={`${player.shuffleMode ? '' : 'opacity-50'}`} />
+        </button>
+
         <button 
           onClick={playPreviousTrack}
           className="flex items-center justify-center p-2 text-white bg-indigo-700/10 hover:bg-black/20 rounded-full duration-1000 shadow-sm"
@@ -336,6 +364,20 @@ export default function MusicPlayer() {
           <SkipForward size={24} />
         </button>
 
+        <button 
+          onClick={ toggleRepeatMode }
+          className="flex items-center justify-center p-2 text-white "
+        >
+          {
+            player.repeatMode === 'repeat-all' 
+            ? <Repeat size={20} /> 
+            : player.repeatMode === 'repeat-one' 
+            ? <Repeat1 size={20} /> 
+            : <Repeat size={20} className='opacity-50' />
+          }
+
+        </button>
+
       
       </div>
       
@@ -351,7 +393,7 @@ export default function MusicPlayer() {
             {player.playlist.map((track, index) => (
               <li 
                 key={index} 
-                className={`relative flex items-center p-3 border-b cursor-pointer border-gray-600 hover:bg-gray-600 ${index === player.currentTrackIndex ? 'bg-gray-600' : ''} group`}
+                className={`relative flex items-center p-3 border-b last:border-b-0 cursor-pointer border-gray-600 hover:bg-gray-600 ${index === player.currentTrackIndex ? 'bg-gray-600' : ''} group`}
                 onClick={() => 
                   setPlayer({ ...player, currentTrackIndex: index, isPlaying: true })
                 }
