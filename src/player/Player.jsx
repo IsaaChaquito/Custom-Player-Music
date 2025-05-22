@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Repeat1 } from 'lucide-react';
 import { parseBlob } from 'music-metadata-browser';
 import { AddSongIcon, RemoveIcon } from '../assets/icons'; 
+import circleSplash from '../assets/images/circle-splash.svg';
 
 // Componente principal del reproductor de música
 export default function MusicPlayer() {
@@ -229,6 +230,30 @@ export default function MusicPlayer() {
       shuffleMode: !player.shuffleMode 
     })
   }
+
+
+  const rippleEffect = (e) => {
+
+        const btn = e.currentTarget;
+
+        const circle = document.createElement("span");
+        const diameter = Math.max(btn.clientWidth, btn.clientHeight);
+        const radius = diameter / 2;
+
+        circle.style.width = circle.style.height = `${diameter}px`;
+        circle.style.left = `${e.clientX - (btn.offsetLeft + radius)}px`;
+        circle.style.top = `${e.clientY - (btn.offsetTop + radius)}px`;
+        circle.classList.add("ripple");
+
+        const ripple = btn.getElementsByClassName("ripple")[0];
+
+        if (ripple) {
+          ripple.remove();
+        }
+
+        btn.appendChild(circle);
+        
+      }
   
   return (
     <div className="flex flex-col items-center w-full sm:w-3xl min-h-screen  p-6 mx-auto bg-gray-800 bg-gradient-to-t from-gray-700 via-gray-900 to-black sm:rounded-lg shadow-lg">
@@ -251,9 +276,10 @@ export default function MusicPlayer() {
 
       {/* Imagen de la cancion */}
       {player.playlist.length > 0 && (
-        <div onClick={alternateShowSongInfo} className="size-68 bg-gray-700d mb-6 *:rounded-lg overflow-hidden rounded-lg relative  shadow-mdd">
+        <div onClick={ alternateShowSongInfo } className="size-68 bg-gray-700d mb-6 *:rounded-lg overflow-hidden rounded-lg relative  shadow-mdd">
             <img 
                 src={player.playlist[player.currentTrackIndex].picture} 
+                // src={'https://i.pinimg.com/1200x/4a/c9/dc/4ac9dc1b9039f6e85575fc8927ae2b3e.jpg'} 
                 alt={player.playlist[player.currentTrackIndex].title} 
                 className="size-full "
               />
@@ -351,11 +377,12 @@ export default function MusicPlayer() {
         </button>
         
         <button 
-          onClick={togglePlay}
-          className={`flex items-center justify-center p-4 text-white bg-indigo-700/10 hover:bg-black/20 rounded-full duration-1000 ${player.isPlaying ? '' : 'shadow-sm'}`}
+          onClick={ (e) => {togglePlay(), rippleEffect(e) }}
+          className={`mask-[url(assets/images/circle-splash.svg)] relative overflow-hidden flex items-center justify-center p-4 text-white bg-indigo-700/100 hover:bg-black/20d rounded-fulld duration-300 ${player.isPlaying ? '' : 'shadow-sm'}`}
         >
           {player.isPlaying ? <Pause size={32} /> : <Play size={32} />}
         </button>
+
         
         <button 
           onClick={playNextTrack}
