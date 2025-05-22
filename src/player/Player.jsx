@@ -123,8 +123,8 @@ export default function MusicPlayer() {
   
   const playNextTrack = () => {
     if (player.playlist.length === 0) return;
-    
-    const newIndex = (player.currentTrackIndex + 1) % player.playlist.length;
+
+    const newIndex = player.shuffleMode ? Math.floor(Math.random() * player.playlist.length) : (player.currentTrackIndex + 1) % player.playlist.length;
 
     setPlayer({ 
       ...player, 
@@ -132,6 +132,18 @@ export default function MusicPlayer() {
       isPlaying: true 
     });
   };
+
+  const playCurrentTrack = () => {
+    if (player.playlist.length === 0) return;
+
+    setPlayer({
+      ...player,
+      currentTime: 0,
+      isPlaying: true
+    })
+
+    audioRef.current.play();
+  }
   
   // Control de volumen
   const toggleMute = () => {
@@ -187,7 +199,12 @@ export default function MusicPlayer() {
       };
       
       audioRef.current.onended = () => {
-        playNextTrack();
+        switch (player.repeatMode) {
+          case 'repeat-all': playNextTrack(); break;
+          case 'repeat-one': playCurrentTrack(); break;
+          case 'none': /*do nothing */ break;
+          default: break;
+        }
       };
     }
   }, [player.currentTrackIndex, player.playlist]);
@@ -395,7 +412,7 @@ export default function MusicPlayer() {
       
       
       {/* Lista de reproducción */}
-      {player.playlist.length > 0 && (
+      {player.playlist.length > 0 ? (
         <>
         
         <div className='flex items- justify-between w-68 mb-6'>
@@ -464,6 +481,26 @@ export default function MusicPlayer() {
 
         </div>
         </>
+      ) : (
+        <div className="flex items-center justify-center w-full h-full">
+          {/* Área de carga de archivos */}
+          <div className="rounded-full ">
+            <label className="rounded-full flex items-center justify-center py-1 px-2 bg-gray-700 border-2 border-dashed cursor-pointer hover:bg-gray-600 border-gray-500">
+              <span className="text-gray-300 text-xs flex items-center justify-center gap-x-1">
+                add song
+                <AddSongIcon className="w-5 h-5" />
+              </span>
+              <input 
+                type="file" 
+                accept="audio/*" 
+                multiple 
+                className="hidden" 
+                onChange={handleFileUpload} 
+              />
+            </label>
+          </div>
+          
+        </div>
       )}
       
       {/* Elemento de audio oculto */}
