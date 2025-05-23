@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Repeat1 } from 'lucide-react';
 import { parseBlob } from 'music-metadata-browser';
 import { AddSongIcon, RemoveIcon } from '../assets/icons'; 
+import unknownAlbum from '../assets/images/unknown-album-2.png';
 
 
 // Componente principal del reproductor de música
@@ -54,13 +55,13 @@ export default function MusicPlayer() {
               artist: artist || "Artista desconocido",
               artists: artists || [],
               album: album || "Álbum desconocido",
-              track: track?.no,
+              track: track?.no || 0,
               year: year || "",
-              genre: genre ? genre : "Género desconocido",
+              genre: genre ? genre : ["Género desconocido"],
               duration: duration || 0,
-              url: URL.createObjectURL(file),
+              url: URL.createObjectURL(file) || null,
               isrc: isrc || null,
-              picture: albumPicture,
+              picture: albumPicture || unknownAlbum,
               file
           };
         } catch (error) {
@@ -71,7 +72,7 @@ export default function MusicPlayer() {
 
     // Filtrar nulos (canciones duplicadas o con error)
     const validNewTracks = processedFiles.filter(track => track !== null);
-
+    console.log(validNewTracks);
     if (validNewTracks.length === 0) return;
 
     // Actualizar el estado con las nuevas canciones
@@ -292,7 +293,7 @@ export default function MusicPlayer() {
               <h3 className='text-sm text-gray-400 font-normal'>Artist: {player.playlist[player.currentTrackIndex].artist}</h3>
               <h3 className='text-sm text-gray-400 font-normal'>Album: {player.playlist[player.currentTrackIndex].album}</h3>
               <h3 className='text-sm text-gray-400 font-normal'>Year: {player.playlist[player.currentTrackIndex].year}</h3>
-              <h3 className='text-sm text-gray-400 font-normal'>Genre: {player.playlist[player.currentTrackIndex].genre.join(', ')}</h3>
+              <h3 className='text-sm text-gray-400 font-normal'>Genre: {player.playlist[player.currentTrackIndex].genre.join(', ') }</h3>
             </div>}
         </div>
       )}
@@ -423,7 +424,7 @@ export default function MusicPlayer() {
           {/* Área de carga de archivos */}
           <div className="rounded-full ">
             <label onClick={(e) => rippleEffect(e)} className="relative overflow-hidden rounded-full flex items-center justify-center py-1 px-2 bg-indigo-700/20 border-2 border-transparent cursor-pointer shadow-sm">
-              <span className="text-gray-400 text-xs flex items-center justify-center gap-x-1">
+              <span className="text-gray-400 text-xs flex items-center justify-center gap-x-1 select-none">
                 add song
                 <AddSongIcon className="w-5 h-5" />
               </span>
@@ -459,7 +460,7 @@ export default function MusicPlayer() {
                       <div className="bar bar-2"></div>
                       <div className="bar bar-3"></div>
                     </div>
-                  : <div className='pr-3 text-sm'>{index + 1}</div>
+                  : <div className='pr-3d min-w-6.5 text-sm '>{index + 1}</div>
                 }
                 <div className='w-full flex items-center justify-between'>
                   <div className='flex justify-center items-start gap-x-2'>
@@ -488,7 +489,7 @@ export default function MusicPlayer() {
           {/* Área de carga de archivos */}
           <div className="rounded-full ">
             <label onClick={(e) => rippleEffect(e)} className="relative overflow-hidden rounded-full flex items-center justify-center py-1 px-2 bg-indigo-700/20 border-2 border-transparent cursor-pointer shadow-sm">
-              <span className="text-gray-400 text-xs flex items-center justify-center gap-x-1">
+              <span className="text-gray-400 text-xs flex items-center justify-center gap-x-1 select-none">
                 add song
                 <AddSongIcon className="w-5 h-5" />
               </span>
