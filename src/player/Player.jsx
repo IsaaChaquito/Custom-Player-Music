@@ -362,40 +362,40 @@ export default function MusicPlayer() {
       </div>
       
       {/* Controles de reproducción */}
-      <div className="flex items-center justify-center w-full mb-1 space-x-6">
+      <div className="flex items-center justify-center w-full mb-4 space-x-6">
 
         <button 
-          onClick={ toggleShuffleMode }
-          className="flex items-center justify-center p-2 text-white bg-indigo-700/10 rounded-full shadow-sm"
+          onClick={ (e)=> { toggleShuffleMode() , rippleEffect(e) } }
+          className="relative overflow-hidden flex items-center justify-center p-2 text-white bg-indigo-700/20 rounded-full shadow-sm"
         >
           <Shuffle size={18} className={`${player.shuffleMode ? '' : 'opacity-50'}`} />
         </button>
 
         <button 
-          onClick={playPreviousTrack}
-          className="flex items-center justify-center p-2 text-white bg-indigo-700/10 rounded-full duration-1000 shadow-sm"
+          onClick={ (e)=> {playPreviousTrack() , rippleEffect(e)} } 
+          className="relative overflow-hidden flex items-center justify-center p-2 text-white bg-indigo-700/20 rounded-full duration-300 shadow-sm"
         >
           <SkipBack size={24} />
         </button>
         
         <button 
           onClick={ (e) => {togglePlay(), rippleEffect(e) }}
-          className={`aspect-square  mask-[url(assets/images/heart-2.png)]d mask-containd relative overflow-hidden flex items-center justify-center p-4 text-white bg-indigo-700/10 rounded-full duration-300 ${player.isPlaying ? '' : 'shadow-sm'}`}
+          className={`relative overflow-hidden flex items-center justify-center p-4 text-white bg-indigo-700/20 rounded-full duration-300 ${player.isPlaying ? '' : 'shadow-sm'}`}
         >
           {player.isPlaying ? <Pause size={32} /> : <Play size={32} />}
         </button>
 
         
         <button 
-          onClick={playNextTrack}
-          className="flex items-center justify-center p-2 text-white bg-indigo-700/10 rounded-full duration-1000 shadow-sm"
+          onClick={ (e) => {playNextTrack() , rippleEffect(e) }}
+          className="relative overflow-hidden flex items-center justify-center p-2 text-white bg-indigo-700/20 rounded-full duration-300 shadow-sm"
         >
           <SkipForward size={24} />
         </button>
 
         <button 
-          onClick={ toggleRepeatMode }
-          className="flex items-center justify-center p-2 text-white bg-indigo-700/10 rounded-full shadow-sm"
+          onClick={ (e) => {toggleRepeatMode(), rippleEffect(e)} }
+          className="relative overflow-hidden flex items-center justify-center p-2 text-white bg-indigo-700/20 rounded-full shadow-sm"
         >
           {
             player.repeatMode === 'repeat-all' 
@@ -415,13 +415,15 @@ export default function MusicPlayer() {
       {player.playlist.length > 0 ? (
         <>
         
-        <div className='flex items- justify-between w-68 mb-6'>
-          <h3 className=" text-lg font-semibold text-white">Playlist</h3>
+        <div className='flex items- justify-between w-68d w-full mb-6'>
+          <h3 className=" text-lg font-normal text-gray-400 bg-gray-700d rounded-full  border-2 border-transparent"> Playlist </h3>
+
+          <span className='text-sm font-normal text-gray-400'> song {player.currentTrackIndex + 1} of {player.playlist.length}</span>
           
           {/* Área de carga de archivos */}
           <div className="rounded-full ">
-            <label className="rounded-full flex items-center justify-center py-1 px-2 bg-gray-700 border-2 border-dashed cursor-pointer hover:bg-gray-600 border-gray-500">
-              <span className="text-gray-300 text-xs flex items-center justify-center gap-x-1">
+            <label onClick={(e) => rippleEffect(e)} className="relative overflow-hidden rounded-full flex items-center justify-center py-1 px-2 bg-indigo-700/20 border-2 border-transparent cursor-pointer shadow-sm">
+              <span className="text-gray-400 text-xs flex items-center justify-center gap-x-1">
                 add song
                 <AddSongIcon className="w-5 h-5" />
               </span>
@@ -464,7 +466,7 @@ export default function MusicPlayer() {
                     <img 
                     src={track.picture} 
                     alt={track.title} 
-                    className={`${index === player.currentTrackIndex ? 'ml-6.5' : ''} size-10 rounded`}
+                    className={`${index === player.currentTrackIndex && player.isPlaying ? 'ml-6.5' : ''} size-10 rounded`}
                   />
 
                   <div className='flex flex-col items-start text-sm'>
@@ -485,8 +487,8 @@ export default function MusicPlayer() {
         <div className="flex items-center justify-center w-full h-full">
           {/* Área de carga de archivos */}
           <div className="rounded-full ">
-            <label className="rounded-full flex items-center justify-center py-1 px-2 bg-gray-700 border-2 border-dashed cursor-pointer hover:bg-gray-600 border-gray-500">
-              <span className="text-gray-300 text-xs flex items-center justify-center gap-x-1">
+            <label onClick={(e) => rippleEffect(e)} className="relative overflow-hidden rounded-full flex items-center justify-center py-1 px-2 bg-indigo-700/20 border-2 border-transparent cursor-pointer shadow-sm">
+              <span className="text-gray-400 text-xs flex items-center justify-center gap-x-1">
                 add song
                 <AddSongIcon className="w-5 h-5" />
               </span>
