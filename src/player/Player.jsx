@@ -368,7 +368,7 @@ export default function MusicPlayer() {
           onClick={ toggleShuffleMode }
           className="flex items-center justify-center p-2 text-white "
         >
-          <Shuffle size={20} className={`${player.shuffleMode ? '' : 'opacity-50'}`} />
+          <Shuffle size={18} className={`${player.shuffleMode ? '' : 'opacity-50'}`} />
         </button>
 
         <button 
@@ -380,7 +380,7 @@ export default function MusicPlayer() {
         
         <button 
           onClick={ (e) => {togglePlay(), rippleEffect(e) }}
-          className={`aspect-square w-full mask-[url(assets/images/heart-2.png)] mask-contain relative overflow-hidden flex items-center justify-center p-4d text-white bg-red-950 rounded-full duration-300 ${player.isPlaying ? '' : 'shadow-sm'}`}
+          className={`aspect-square  mask-[url(assets/images/heart-2.png)]d mask-containd relative overflow-hidden flex items-center justify-center p-4 text-white bg-indigo-700/10 rounded-full duration-300 ${player.isPlaying ? '' : 'shadow-sm'}`}
         >
           {player.isPlaying ? <Pause size={32} /> : <Play size={32} />}
         </button>
@@ -399,10 +399,10 @@ export default function MusicPlayer() {
         >
           {
             player.repeatMode === 'repeat-all' 
-            ? <Repeat size={20} /> 
+            ? <Repeat size={18} /> 
             : player.repeatMode === 'repeat-one' 
-            ? <Repeat1 size={20} /> 
-            : <Repeat size={20} className='opacity-50' />
+            ? <Repeat1 size={18} /> 
+            : <Repeat size={18} className='opacity-50' />
           }
 
         </button>
