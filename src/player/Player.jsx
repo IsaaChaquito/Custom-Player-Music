@@ -366,14 +366,14 @@ export default function MusicPlayer() {
 
         <button 
           onClick={ toggleShuffleMode }
-          className="flex items-center justify-center p-2 text-white "
+          className="flex items-center justify-center p-2 text-white bg-indigo-700/10 rounded-full shadow-sm"
         >
           <Shuffle size={18} className={`${player.shuffleMode ? '' : 'opacity-50'}`} />
         </button>
 
         <button 
           onClick={playPreviousTrack}
-          className="flex items-center justify-center p-2 text-white bg-indigo-700/10 hover:bg-black/20 rounded-full duration-1000 shadow-sm"
+          className="flex items-center justify-center p-2 text-white bg-indigo-700/10 rounded-full duration-1000 shadow-sm"
         >
           <SkipBack size={24} />
         </button>
@@ -388,14 +388,14 @@ export default function MusicPlayer() {
         
         <button 
           onClick={playNextTrack}
-          className="flex items-center justify-center p-2 text-white bg-indigo-700/10 hover:bg-black/20 rounded-full duration-1000 shadow-sm"
+          className="flex items-center justify-center p-2 text-white bg-indigo-700/10 rounded-full duration-1000 shadow-sm"
         >
           <SkipForward size={24} />
         </button>
 
         <button 
           onClick={ toggleRepeatMode }
-          className="flex items-center justify-center p-2 text-white "
+          className="flex items-center justify-center p-2 text-white bg-indigo-700/10 rounded-full shadow-sm"
         >
           {
             player.repeatMode === 'repeat-all' 
@@ -451,7 +451,7 @@ export default function MusicPlayer() {
                   setPlayer({ ...player, currentTrackIndex: index, isPlaying: true })
                 }
               >
-                {index === player.currentTrackIndex 
+                { (index === player.currentTrackIndex && player.isPlaying)
                   ? <div className="flex gap-3 absolute -left-3" style={{scale: 0.2}}>
                       <div className="bar bar-1"></div>
                       <div className="bar bar-2"></div>
