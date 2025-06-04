@@ -4,6 +4,11 @@ import { parseBlob } from 'music-metadata-browser';
 import { AddSongIcon, RemoveIcon } from '../assets/icons'; 
 import unknownAlbum from '../assets/images/unknown-album-2.png';
 
+const nextRepeatMode = {
+  'repeat-queue': 'repeat-current',
+  'repeat-current': 'repeat-none',
+  'repeat-none': 'repeat-queue',
+}
 
 // Componente principal del reproductor de música
 export default function MusicPlayer() {
@@ -19,81 +24,82 @@ export default function MusicPlayer() {
     showSongInfo: false,
     volumeBarWidth: 0,
     playlist: [],
-    repeatMode: 'repeat-all',
+    repeatMode: 'repeat-queue',
     shuffleMode: false
   });
   
   // Referencias para manipular el elemento de audio
-  const audioRef = useRef(null);
-  const progressBarRef = useRef(null);
+  const audioRef = useRef( null )
+  const progressBarRef = useRef( null )
+  const currentSongInfo = useRef( null )
 
-    const handleFileUpload = async (e) => {
-      const files = Array.from(e.target.files);
-      if (!files || files.length === 0) return;
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files || files.length === 0) return;
 
-      // Primero procesamos todos los archivos
-      const processedFiles = await Promise.all(files.map(async file => {
-        try {
-          const metadata = await parseBlob(file);
-          const { common, format } = metadata;
-          const { title, artist, artists, album, picture, track, year, genre, isrc } = common;
-          const { duration } = format;
+    // Primero procesamos todos los archivos
+    const processedFiles = await Promise.all(files.map(async file => {
+      try {
+        const metadata = await parseBlob(file);
+        const { common, format } = metadata;
+        const { title, artist, artists, album, picture = [], track, year, genre, isrc = [] } = common;
+        const { duration } = format;
 
-          // Verificar si la canción ya existe en la playlist actual
-          const isDuplicate = isrc && player.playlist.some(existingTrack => existingTrack.isrc[0] === isrc[0]);
-          if (isDuplicate) return null;
+        // Verificar si la canción ya existe en la playlist actual
+        const isDuplicate = isrc && player.playlist.some(existingTrack => existingTrack.isrc[0] === isrc[0]);
+        if (isDuplicate) return null;
 
-          let albumPicture = null;
-          if (picture && picture[0]) {
-              const base64String = uint8ArrayToBase64(picture[0].data);
-              const mimeType = picture[0].format;
-              albumPicture = `data:${mimeType};base64,${base64String}`;
-          }
-
-          return {
-              title: title || file.name.replace(/\.[^/.]+$/, ""),
-              artist: artist || "Artista desconocido",
-              artists: artists || [],
-              album: album || "Álbum desconocido",
-              track: track?.no || 0,
-              year: year || "",
-              genre: genre ? genre : ["Género desconocido"],
-              duration: duration || 0,
-              url: URL.createObjectURL(file) || null,
-              isrc: isrc || null,
-              picture: albumPicture || unknownAlbum,
-              file
-          };
-        } catch (error) {
-            console.error("Error leyendo metadatos:", error);
-            return null;
+        let albumPicture = null;
+        if (picture && picture[0]) {
+            const base64String = uint8ArrayToBase64(picture[0].data);
+            const mimeType = picture[0].format;
+            albumPicture = `data:${mimeType};base64,${base64String}`;
         }
-      }));
 
-    // Filtrar nulos (canciones duplicadas o con error)
-    const validNewTracks = processedFiles.filter(track => track !== null);
-    console.log(validNewTracks);
-    if (validNewTracks.length === 0) return;
-
-    // Actualizar el estado con las nuevas canciones
-    setPlayer(prevState => {
-        const newPlaylist = [...prevState.playlist, ...validNewTracks];
-        const shouldSetCurrentTrack = prevState.playlist.length === 0 && validNewTracks.length > 0;
-        
         return {
-            ...prevState,
-            playlist: newPlaylist,
-            currentTrackIndex: shouldSetCurrentTrack ? 0 : prevState.currentTrackIndex
+            title: title || file.name.replace(/\.[^/.]+$/, ""),
+            artist: artist || "Artista desconocido",
+            artists: artists || [],
+            album: album || "Álbum desconocido",
+            track: track?.no || 0,
+            year: year || "Año desconocido",
+            genre: genre ? genre : ["Género desconocido"],
+            duration: duration || 0,
+            url: URL.createObjectURL(file) || null,
+            isrc: isrc || null,
+            picture: albumPicture || unknownAlbum,
+            file
         };
-    });
+      } catch (error) {
+          console.error("Error leyendo metadatos:", error);
+          return null;
+      }
+    }));
 
-    function uint8ArrayToBase64(uint8Array) {
-        let binary = '';
-        uint8Array.forEach((byte) => {
-            binary += String.fromCharCode(byte);
-        });
-        return window.btoa(binary);
-    }
+  // Filtrar nulos (canciones duplicadas o con error)
+  const validNewTracks = processedFiles.filter(track => track !== null);
+
+  if (validNewTracks.length === 0) return;
+
+  // Actualizar el estado con las nuevas canciones
+  setPlayer(prevState => {
+      const newPlaylist = [...prevState.playlist, ...validNewTracks];
+      const shouldSetCurrentTrack = prevState.playlist.length === 0 && validNewTracks.length > 0;
+      
+      return {
+          ...prevState,
+          playlist: newPlaylist,
+          currentTrackIndex: shouldSetCurrentTrack ? 0 : prevState.currentTrackIndex
+      };
+  });
+
+  function uint8ArrayToBase64(uint8Array) {
+      let binary = '';
+      uint8Array.forEach((byte) => {
+          binary += String.fromCharCode(byte);
+      });
+      return window.btoa(binary);
+  }
   };
 
   
@@ -127,23 +133,28 @@ export default function MusicPlayer() {
 
     const newIndex = player.shuffleMode ? Math.floor(Math.random() * player.playlist.length) : (player.currentTrackIndex + 1) % player.playlist.length;
 
-    setPlayer({ 
-      ...player, 
+    setPlayer(prevState => ({ 
+      ...prevState, 
       currentTrackIndex: newIndex, 
       isPlaying: true 
-    });
+    }));
   };
 
   const playCurrentTrack = () => {
+
     if (player.playlist.length === 0) return;
 
-    setPlayer({
-      ...player,
+    setPlayer(prevState => ({
+      ...prevState,
       currentTime: 0,
-      isPlaying: true
-    })
+      currentTrackIndex: prevState.currentTrackIndex,
+      isPlaying: true,
+    }))
 
-    audioRef.current.play();
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play();
+    }
   }
   
   // Control de volumen
@@ -201,14 +212,25 @@ export default function MusicPlayer() {
       
       audioRef.current.onended = () => {
         switch (player.repeatMode) {
-          case 'repeat-all': playNextTrack(); break;
-          case 'repeat-one': playCurrentTrack(); break;
-          case 'none': /*do nothing */ break;
-          default: break;
+          case 'repeat-queue': playNextTrack(); break;
+          case 'repeat-current': playCurrentTrack(); break;
+          case 'repeat-none':  
+            if( player.currentTrackIndex == player.playlist.length-1 ){
+              setPlayer({
+                ...player,
+                currentTime: 0,
+                isPlaying: false,
+                currentTrackIndex: 0,
+              })
+
+              audioRef.current.currentTime = 0
+            } 
+            else playNextTrack();
+          break;
         }
       };
     }
-  }, [player.currentTrackIndex, player.playlist]);
+  }, [player.currentTrackIndex, player.playlist, player.repeatMode]);
   
   // Efecto para actualizar el volumen
   useEffect(() => {
@@ -236,10 +258,11 @@ export default function MusicPlayer() {
   }
 
   const toggleRepeatMode = () => {
-    setPlayer({ 
-      ...player, 
-      repeatMode: player.repeatMode === 'repeat-all' ? 'repeat-one' : player.repeatMode === 'repeat-one' ? 'none' : 'repeat-all' 
-    })
+    setPlayer(prevState => ({ 
+        ...prevState, 
+        repeatMode: nextRepeatMode[prevState.repeatMode] 
+      })
+    )
   }
 
   const toggleShuffleMode = () => {
@@ -271,7 +294,42 @@ export default function MusicPlayer() {
 
         btn.appendChild(circle);
         
+  }
+ 
+
+  //Title displacement
+  useEffect(() => {
+
+    const interval = setInterval(() => {
+      if (currentSongInfo.current) {
+        
+        const element = currentSongInfo.current;
+
+        const hasClass = element.className?.includes('song-title-animation');
+
+        if( hasClass ) element.classList.remove('song-title-animation')
+        else setTimeout(() => element.classList.add('song-title-animation'), 10000)
+
+        //reset displacement animation
+        // element.classList.remove('song-title-animation-in song-title-animation-out')
+
+        // const hasClass = element.className?.includes('song-title-animation-out');
+        
+        // if (hasClass) {
+        //   element.classList.remove('song-title-animation-out');
+        //   element.classList.add('song-title-animation-in');
+        // } else {
+        //   setTimeout(() => {
+        //     element.classList.remove('song-title-animation-in');
+        //     element.classList.add('song-title-animation-out');
+        //   }, 0);
+        // }
       }
+    }, 10000);
+
+    // Cleanup: limpiar el interval cuando el componente se desmonta
+    return () => clearInterval(interval);
+  }, []);
   
   return (
     <div className="flex flex-col items-center w-full sm:w-3xl min-h-screen  p-6 mx-auto bg-gray-800 bg-gradient-to-t from-gray-700 via-gray-900 to-black sm:rounded-lg shadow-lg">
@@ -301,12 +359,17 @@ export default function MusicPlayer() {
       {/* Información de la canción actual */}
       <div className="w-68 mb-4 text-center bg-slate-6000">
         {player.playlist.length > 0 ? (
-          <div className='flex justify-between items-center'>
-            <div className='flex flex-col items-start text-sm text-start'>
-              <h3 className="font-semibold text-white overflow-hidden truncate"> {player.playlist[player.currentTrackIndex].title}</h3>
+          <div className='flex justify-between items-center gap-x-2'>
+            <div className='flex flex-col items-start text-sm text-start max-w-68 min-w-auto duration-300 px-2 overflow-hidden'>
+              <h3 
+                ref={ currentSongInfo } 
+                className="font-semibold text-white text-nowrap"
+              > 
+                {player.playlist[player.currentTrackIndex].title}
+              </h3>
               <h3 className=' text-gray-400 font-normal'>{player.playlist[player.currentTrackIndex].artist}</h3>
             </div>
-            <button onClick={ ()=> removeFromPlaylist( player.currentTrackIndex ) } className=' rounded-full'>
+            <button onClick={ ()=> removeFromPlaylist( player.currentTrackIndex ) } className=' rounded-full px-1'>
               <RemoveIcon className="w-5.5 h-5.5 text-white " />
             </button>
           </div>
@@ -399,9 +462,9 @@ export default function MusicPlayer() {
           className="relative overflow-hidden flex items-center justify-center p-2 text-white bg-indigo-700/20 rounded-full shadow-sm"
         >
           {
-            player.repeatMode === 'repeat-all' 
+            player.repeatMode === 'repeat-queue' 
             ? <Repeat size={18} /> 
-            : player.repeatMode === 'repeat-one' 
+            : player.repeatMode === 'repeat-current' 
             ? <Repeat1 size={18} /> 
             : <Repeat size={18} className='opacity-50' />
           }
@@ -442,7 +505,7 @@ export default function MusicPlayer() {
 
         </div>
 
-        <div className="w-full max-h-96 overflow-y-auto rounded-lg">
+        <div className="w-full max-h-96 overflow-y-auto  rounded-lg">
 
 
           <ul className="bg-gray-700">
@@ -460,7 +523,7 @@ export default function MusicPlayer() {
                       <div className="bar bar-2"></div>
                       <div className="bar bar-3"></div>
                     </div>
-                  : <div className='pr-3d min-w-6.5 text-sm '>{index + 1}</div>
+                  : <div className='pr-3d min-w-6.5 text-sm'>{index + 1}</div>
                 }
                 <div className='w-full flex items-center justify-between'>
                   <div className='flex justify-center items-start gap-x-2'>
@@ -471,7 +534,7 @@ export default function MusicPlayer() {
                   />
 
                   <div className='flex flex-col items-start text-sm'>
-                    <h3 className={` font-semibold text-white`}> {track.title}</h3>
+                    <h3 className={` font-semibold text-white text-nowrap truncate max-w-50 sm:w-auto`}> {track.title}</h3>
                     <h3 className={` text-gray-400 font-normal`}>{track.artist}</h3>
                   </div>
                   </div>
@@ -519,3 +582,4 @@ export default function MusicPlayer() {
     </div>
   );
 }
+

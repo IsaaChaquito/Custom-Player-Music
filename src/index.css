@@ -80,7 +80,6 @@ input[type="range"]::-moz-range-thumb {
   }
 }
 
-
 span.ripple {
   position: absolute;
   border-radius: 50%;
@@ -95,3 +94,51 @@ span.ripple {
   }
 }
 
+.song-title-animation-in{
+  animation: floatingTextIn 8s linear;
+}
+
+.song-title-animation-out{
+  animation: floatingTextOut 8s linear;
+}
+
+.song-title-animation{
+  animation: titleDisplacement 10s linear;
+}
+
+@keyframes floatingTextIn {
+  0% {
+    transform: translateX(272px);
+  }
+  100% {
+    transform: translateX(0px);
+  }
+}
+
+@keyframes floatingTextOut {
+  0% {
+    transform: translateX(0px);
+  }
+  100% {
+    transform: translateX(-272px);
+  }
+}
+
+@keyframes titleDisplacement {
+  0% {
+    transform: translateX(0%);
+  }
+  25% {
+    transform: translateX(-100%);
+  }
+  25.99%{
+    transform: translateX(100%);
+  }
+  50%{
+    opacity: 1;
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
