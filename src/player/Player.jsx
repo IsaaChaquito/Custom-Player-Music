@@ -323,7 +323,7 @@ export default function MusicPlayer() {
 
       {/* Imagen de la cancion */}
       {player.playlist.length > 0 && (
-        <div onClick={ alternateShowSongInfo } className="size-68 bg-gray-700d mb-6 *:rounded-lg overflow-hidden rounded-lg relative  shadow-mdd">
+        <div onClick={ alternateShowSongInfo } className="size-80 mb-6 *:rounded-lg overflow-hidden rounded-lg relative">
             <img 
                 src={player.playlist[player.currentTrackIndex].picture} 
                 alt={player.playlist[player.currentTrackIndex].title} 
@@ -506,7 +506,7 @@ export default function MusicPlayer() {
             {player.playlist.map((track, index) => (
               <li 
                 key={index} 
-                className={`relative flex items-center p-3 border-b last:border-b-0 cursor-pointer border-gray-600 hover:bg-gray-600 ${index === player.currentTrackIndex ? 'bg-blackd bg-gradient-to-l from-black from-0% to-90% to-gray-700' : ''} group`}
+                className={`relative flex items-center p-3 border-b last:border-b-0 cursor-pointer border-gray-600 hover:bg-gray-600 ${index === player.currentTrackIndex ? 'bg-indigo-700 bg-gradient-to-t from-gray-700/50 from-0% to-100% via-black to-gray-700/50' : ''} group`}
                 onClick={() => 
                   setPlayer({ ...player, currentTrackIndex: index, isPlaying: true })
                 }
