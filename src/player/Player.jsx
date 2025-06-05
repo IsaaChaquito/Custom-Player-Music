@@ -502,11 +502,11 @@ export default function MusicPlayer() {
         <div className="w-full max-h-96 overflow-y-auto rounded-lg">
 
 
-          <ul className="bg-gradient-to-b to-black-950">
+          <ul className="bg-gray-700">
             {player.playlist.map((track, index) => (
               <li 
                 key={index} 
-                  className={`relative flex items-center p-3 border-b last:border-b-0 cursor-pointer border-gray-600 ${index === player.currentTrackIndex ? 'bg-stone-800' : 'hover:bg-gray-600 hover:bg-gradient-to-r hover:from-gray-700 hover:from-0% hover:to-100% hover:via-gray-800 hover:to-gray-700'} group`}
+                  className={`relative flex items-center p-3 border-b last:border-b-0 cursor-pointer border-gray-600 ${index === player.currentTrackIndex ? 'bg-gray-900' : 'hover:bg-gray-800'} group`}
                 onClick={() => 
                   setPlayer({ ...player, currentTrackIndex: index, isPlaying: true })
                 }
