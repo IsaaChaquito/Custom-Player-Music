@@ -19,7 +19,7 @@ export default function MusicPlayer() {
     currentTrackIndex: 0,
     duration: 0,
     isPlaying: false,
-    volume: 0.7,
+    volume: 1,
     isMuted: false,
     showSongInfo: false,
     volumeBarWidth: 0,
@@ -31,7 +31,9 @@ export default function MusicPlayer() {
   // Referencias para manipular el elemento de audio
   const audioRef = useRef( null )
   const progressBarRef = useRef( null )
-  const currentSongInfo = useRef( null )
+  const songInfoRef = useRef( null )
+  const songInfoContainerRef = useRef( null )
+  const volumeInputRef = useRef( null )
 
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
@@ -157,11 +159,6 @@ export default function MusicPlayer() {
     }
   }
   
-  // Control de volumen
-  const toggleMute = () => {
-    setPlayer({ ...player, isMuted: !player.isMuted });
-  };
-  
   const handleVolumeChange = (e) => {
     const newVolume = parseFloat(e.target.value);
 
@@ -239,12 +236,13 @@ export default function MusicPlayer() {
     }
   }, [player.volume, player.isMuted]);
 
-  const handleMouseEnter = () => {
-    setPlayer({ ...player, volumeBarWidth: 50 })
-  }
+  const handleExpandVolume = () => {
+    setPlayer({ ...player, volumeBarWidth: player.volumeBarWidth === 0 ? 50 : 0 })
 
-  const handleMouseLeave = () => {
-    setPlayer({ ...player, volumeBarWidth: 0 })
+    if(volumeInputRef.current) {
+      console.dir(volumeInputRef.current);
+      volumeInputRef.current.focus()
+    }
   }
 
   const alternateShowSongInfo = () => {
@@ -301,40 +299,27 @@ export default function MusicPlayer() {
   useEffect(() => {
 
     const interval = setInterval(() => {
-      if (currentSongInfo.current) {
+      if (songInfoRef.current ) {
         
-        const element = currentSongInfo.current;
+        const element = songInfoRef.current
+        const elementContainer = songInfoContainerRef.current
+        const hasOverflow = elementContainer.scrollWidth > elementContainer.clientWidth
 
+        if(!hasOverflow) return
+        
         const hasClass = element.className?.includes('song-title-animation');
 
         if( hasClass ) element.classList.remove('song-title-animation')
-        else setTimeout(() => element.classList.add('song-title-animation'), 10000)
-
-        //reset displacement animation
-        // element.classList.remove('song-title-animation-in song-title-animation-out')
-
-        // const hasClass = element.className?.includes('song-title-animation-out');
-        
-        // if (hasClass) {
-        //   element.classList.remove('song-title-animation-out');
-        //   element.classList.add('song-title-animation-in');
-        // } else {
-        //   setTimeout(() => {
-        //     element.classList.remove('song-title-animation-in');
-        //     element.classList.add('song-title-animation-out');
-        //   }, 0);
-        // }
+        else element.classList.add('song-title-animation')
       }
-    }, 10000);
+    }, 5000); //If you change this timer, go and edit to the same number of seconds in the animation time in index.css
 
     // Cleanup: limpiar el interval cuando el componente se desmonta
     return () => clearInterval(interval);
-  }, []);
+  }, [player?.currentTrackIndex]);
   
   return (
     <div className="flex flex-col items-center w-full sm:w-3xl min-h-screen  p-6 mx-auto bg-gray-800 bg-gradient-to-t from-gray-700 via-gray-900 to-black sm:rounded-lg shadow-lg">
-
-      
 
       {/* Imagen de la cancion */}
       {player.playlist.length > 0 && (
@@ -359,15 +344,26 @@ export default function MusicPlayer() {
       {/* Información de la canción actual */}
       <div className="w-68 mb-4 text-center bg-slate-6000">
         {player.playlist.length > 0 ? (
-          <div className='flex justify-between items-center gap-x-2'>
-            <div className='flex flex-col items-start text-sm text-start max-w-68 min-w-auto duration-300 px-2 overflow-hidden'>
-              <h3 
-                ref={ currentSongInfo } 
-                className="font-semibold text-white text-nowrap"
-              > 
-                {player.playlist[player.currentTrackIndex].title}
-              </h3>
-              <h3 className=' text-gray-400 font-normal'>{player.playlist[player.currentTrackIndex].artist}</h3>
+          <div className='flex justify-between items-center gap-x-2 rounded-lg py-2 '>
+            <div ref={ songInfoContainerRef } className='flex flex-col items-start text-sm text-start max-w-68 min-w-auto duration-300 overflow-hidden bg-red-5000 mask-r-from-98% mask-l-from-98% px-2'>
+              
+              <div ref={ songInfoRef } className='flex justify-between items-center gap-x-[13%]' >
+                <h3 
+                  className="font-semibold text-white text-nowrap"
+                > 
+                  {player.playlist[player.currentTrackIndex].title}
+                </h3>
+                
+                { songInfoContainerRef?.current?.scrollWidth > songInfoContainerRef?.current?.clientWidth &&
+                  <h3 
+                    className="font-semibold text-white text-nowrap"
+                  > 
+                    {player.playlist[player.currentTrackIndex].title}
+                  </h3>
+                }
+              </div>
+              
+              <h3 className='text-gray-400 font-normal'>{player.playlist[player.currentTrackIndex].artist}</h3>
             </div>
             <button onClick={ ()=> removeFromPlaylist( player.currentTrackIndex ) } className=' rounded-full px-1'>
               <RemoveIcon className="w-5.5 h-5.5 text-white " />
@@ -378,49 +374,47 @@ export default function MusicPlayer() {
         )}
       </div>
       
-      <div className="flex items-center w-full mb-4">
+      <div className="flex items-end justify-center gap-x-3 w-full mb-4">
 
         {/* Barra de progreso */}
         <div className='flex items-center w-full duration-300'>
           <span className="mr-2 text-sm text-gray-400">{formatTime(player.currentTime)}</span>
-        <input 
-          id="progressBar"
-          ref={progressBarRef}
-          type="range" 
-          min="0" 
-          max={player.duration || 0} 
-          value={player.currentTime} 
-          step="0.01"
-          onChange={handleProgressChange}
-          className="flex-grow w-full h-0.5 bg-white rounded-lg appearance-none cursor-pointer duration-300"
-        />
-        <span className="ml-2 text-sm text-gray-400">{formatTime(player.playlist[player.currentTrackIndex]?.duration)}</span>
+          <input 
+            id="progressBar"
+            ref={progressBarRef}
+            type="range" 
+            min="0" 
+            max={player.duration || 0} 
+            value={player.currentTime} 
+            step="0.01"
+            onChange={handleProgressChange}
+            className="flex-grow w-full h-0.5 bg-white rounded-lg appearance-none cursor-pointer duration-300"
+          />
+          <span className="ml-2 text-sm text-gray-400">{formatTime(player.playlist[player.currentTrackIndex]?.duration)}</span>
         </div>
 
         {/* Control de volumen */}
-        <div             
-            onMouseEnter={ handleMouseEnter } 
-            onMouseLeave={ handleMouseLeave } 
-            className="flex items-center w-24l ml-3 group duration-300"
-        >
+        <div className="flex items-center group duration-300">
           <button 
-            onClick={toggleMute} 
-            className="mr-2 text-white">
+            onClick={ handleExpandVolume }
+            className={`${player.volumeBarWidth === 0 ? '' : 'mr-2'} text-white`}>
             {player.isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
           </button>
           
           <input 
             style={{
               maxWidth: `${player.volumeBarWidth}px`,  
-              opacity: `${player.volumeBarWidth > 0 ? 1 : 0}`
             }}
+            ref={ volumeInputRef }
             type="range" 
             min="0" 
             max="1" 
             step="0.01" 
             value={player.volume}
             onChange={handleVolumeChange}
-            className={`w-40 h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer   transition-transform duration-300 ease-in-out `}
+            onBlur={ handleExpandVolume }
+            disabled={ player.volumeBarWidth > 0 ? false : true }
+            className={`h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer transition-all duration-300 ease-in-out ${player.volumeBarWidth === 0 ? 'pointer-events-none opacity-0 ' : 'opacity-100'}`}
           />
         </div>
       </div>
@@ -505,14 +499,14 @@ export default function MusicPlayer() {
 
         </div>
 
-        <div className="w-full max-h-96 overflow-y-auto  rounded-lg">
+        <div className="w-full max-h-96 overflow-y-auto rounded-lg">
 
 
           <ul className="bg-gray-700">
             {player.playlist.map((track, index) => (
               <li 
                 key={index} 
-                className={`relative flex items-center p-3 border-b last:border-b-0 cursor-pointer border-gray-600 hover:bg-gray-600 ${index === player.currentTrackIndex ? 'bg-gray-600' : ''} group`}
+                className={`relative flex items-center p-3 border-b last:border-b-0 cursor-pointer border-gray-600 hover:bg-gray-600 ${index === player.currentTrackIndex ? 'bg-blackd bg-gradient-to-l from-black from-0% to-90% to-gray-700' : ''} group`}
                 onClick={() => 
                   setPlayer({ ...player, currentTrackIndex: index, isPlaying: true })
                 }
