@@ -506,7 +506,7 @@ export default function MusicPlayer() {
             {player.playlist.map((track, index) => (
               <li 
                 key={index} 
-                className={`relative flex items-center p-3 border-b last:border-b-0 cursor-pointer border-gray-600 hover:bg-gray-600 ${index === player.currentTrackIndex ? 'bg-indigo-700 bg-gradient-to-t from-gray-700/50 from-0% to-100% via-black to-gray-700/50' : ''} group`}
+                className={`relative flex items-center p-3 border-b last:border-b-0 cursor-pointer border-gray-600 ${index === player.currentTrackIndex ? 'bg-gray-600 bg-gradient-to-r from-gray-700 from-0% to-100% via-slate-950 to-gray-700' : 'hover:bg-gray-600 hover:bg-gradient-to-r hover:from-gray-700 hover:from-0% hover:to-100% hover:via-gray-800 hover:to-gray-700'} group`}
                 onClick={() => 
                   setPlayer({ ...player, currentTrackIndex: index, isPlaying: true })
                 }
