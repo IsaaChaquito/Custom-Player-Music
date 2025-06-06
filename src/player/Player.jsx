@@ -3,6 +3,12 @@ import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, 
 import { parseBlob } from 'music-metadata-browser';
 import { AddSongIcon, RemoveIcon } from '../assets/icons'; 
 import unknownAlbum from '../assets/images/unknown-album-2.png';
+import 'swiper/css';
+import 'swiper/css/effect-creative';
+
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { EffectCreative } from 'swiper/modules';
+
 
 const nextRepeatMode = {
   'repeat-queue': 'repeat-current',
@@ -317,12 +323,75 @@ export default function MusicPlayer() {
     // Cleanup: limpiar el interval cuando el componente se desmonta
     return () => clearInterval(interval);
   }, [player?.currentTrackIndex]);
+
+
+  //Deslizar la imagen de la canción hacia la derecha o izquierda para cambiar de canción a siguiente o anterior
+
+
   
   return (
     <div className="flex flex-col items-center w-full sm:w-3xl min-h-screen  p-6 mx-auto bg-gray-800 bg-gradient-to-t from-black via-gray-800 to-black sm:rounded-lg shadow-lg">
 
+      <Swiper
+        grabCursor={true}
+        effect={'creative'}
+        creativeEffect={{
+          prev: {
+            shadow: true,
+            translate: ['-120%', 0, -500],
+          },
+          next: {
+            shadow: true,
+            translate: ['120%', 0, -500],
+          },
+        }}
+        loop={true}
+        modules={[EffectCreative]}
+        className="m-5 !size-80"
+        onSlideChange={(swiper) => {
+        setPlayer({ 
+          ...player, 
+          currentTrackIndex: swiper.activeIndex, 
+          isPlaying: true 
+        });
+      }}
+      >
+        {player.playlist.map((track, index) => (
+            <SwiperSlide 
+              key={index} 
+              onChange={() => 
+                setPlayer({ ...player, currentTrackIndex: index, isPlaying: true })
+              }
+            >
+              {({ isActive }) => (
+                player.playlist.length > 0 && (
+                  <div onClick={ alternateShowSongInfo } className="size-80 mb-6 *:rounded-lg overflow-hidden rounded-lg relative">
+                    
+                    <img 
+                        src={track.picture} 
+                        alt={track.title} 
+                        className="size-full"
+                        />
+
+                    <div className={`flex flex-col gap-y-1 absolute top-0 left-0 size-full bg-black  border border-gray-500 text-sm p-3 duration-300 ${player.showSongInfo ? 'opacity-85' : 'opacity-0'}`}>
+                      <h3 className="text-xl font-semibold text-white text-center"> {track.title}</h3>
+                      <h3 className='text-sm text-gray-400 font-normal'>Artist: {track.artist}</h3>
+                      <h3 className='text-sm text-gray-400 font-normal'>Album: {track.album}</h3>
+                      <h3 className='text-sm text-gray-400 font-normal'>Current slide is {isActive ? 'active' : 'not active'}</h3>
+                      <h3 className='text-sm text-gray-400 font-normal'>Genre: {track.genre.join(', ') }</h3>
+                      <h3 className='text-sm text-gray-400 font-normal'>Year: {track.year}</h3>
+                    </div>
+                  </div>
+                )
+              )}
+              
+            </SwiperSlide>
+          ))}
+      </Swiper>
+
+
       {/* Imagen de la cancion */}
-      {player.playlist.length > 0 && (
+      {/* {player.playlist.length > 0 && (
         <div onClick={ alternateShowSongInfo } className="size-80 mb-6 *:rounded-lg overflow-hidden rounded-lg relative">
             <img 
                 src={player.playlist[player.currentTrackIndex].picture} 
@@ -339,7 +408,7 @@ export default function MusicPlayer() {
               <h3 className='text-sm text-gray-400 font-normal'>Genre: {player.playlist[player.currentTrackIndex].genre.join(', ') }</h3>
             </div>}
         </div>
-      )}
+      )} */}
       
       {/* Información de la canción actual */}
       <div className="w-68 mb-4 text-center bg-slate-6000">
