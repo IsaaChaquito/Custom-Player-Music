@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Repeat1 } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume, Volume1, Volume2, Shuffle, Repeat, Repeat1 } from 'lucide-react';
 import { parseBlob } from 'music-metadata-browser';
 import { AddSongIcon, RemoveIcon } from '../assets/icons'; 
 import unknownAlbum from '../assets/images/unknown-album-2.png';
@@ -26,7 +26,6 @@ export default function MusicPlayer() {
     duration: 0,
     isPlaying: false,
     volume: 1,
-    isMuted: false,
     showSongInfo: false,
     volumeBarWidth: 0,
     playlist: [],
@@ -40,6 +39,7 @@ export default function MusicPlayer() {
   const songInfoRef = useRef( null )
   const songInfoContainerRef = useRef( null )
   const volumeInputRef = useRef( null )
+  const swiperRef = useRef( null )
 
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
@@ -126,26 +126,37 @@ export default function MusicPlayer() {
   const playPreviousTrack = () => {
     if (player.playlist.length === 0) return;
     
-    const newIndex = player.currentTrackIndex === 0 ? player.playlist.length - 1 : player.currentTrackIndex - 1;
-
+    const newIndex = player.currentTrackIndex === 0 
+      ? player.playlist.length - 1 
+      : player.currentTrackIndex - 1;
+  
     setPlayer({ 
       ...player, 
       currentTrackIndex: newIndex, 
       isPlaying: true 
     });
+  
 
+    if (swiperRef?.current?.swiper) {
+      swiperRef.current.swiper.slideTo(newIndex);
+    }
   };
   
   const playNextTrack = () => {
     if (player.playlist.length === 0) return;
 
+    
     const newIndex = player.shuffleMode ? Math.floor(Math.random() * player.playlist.length) : (player.currentTrackIndex + 1) % player.playlist.length;
-
+    
     setPlayer(prevState => ({ 
       ...prevState, 
-      currentTrackIndex: newIndex, 
-      isPlaying: true 
-    }));
+        currentTrackIndex: newIndex, 
+        isPlaying: true 
+      }));
+      
+      if (swiperRef?.current?.swiper) {
+        swiperRef.current.swiper.slideTo(newIndex);
+      }
   };
 
   const playCurrentTrack = () => {
@@ -171,7 +182,6 @@ export default function MusicPlayer() {
     setPlayer({ 
       ...player, 
       volume: newVolume, 
-      isMuted: newVolume === 0 
     });
   };
   
@@ -238,15 +248,14 @@ export default function MusicPlayer() {
   // Efecto para actualizar el volumen
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = player.isMuted ? 0 : player.volume;
+      audioRef.current.volume =  player.volume;
     }
-  }, [player.volume, player.isMuted]);
+  }, [player.volume]);
 
   const handleExpandVolume = () => {
     setPlayer({ ...player, volumeBarWidth: player.volumeBarWidth === 0 ? 50 : 0 })
 
     if(volumeInputRef.current) {
-      console.dir(volumeInputRef.current);
       volumeInputRef.current.focus()
     }
   }
@@ -324,8 +333,16 @@ export default function MusicPlayer() {
     return () => clearInterval(interval);
   }, [player?.currentTrackIndex]);
 
-
-  //Deslizar la imagen de la canción hacia la derecha o izquierda para cambiar de canción a siguiente o anterior
+  
+  // Hook para sincronizar cuando cambie currentTrackIndex desde otro lugar
+  useEffect(() => {
+  if (swiperRef.current && swiperRef.current.swiper) {
+    const currentSlide = swiperRef.current.swiper.realIndex;
+    if (currentSlide !== player.currentTrackIndex) {
+      swiperRef.current.swiper.slideTo(player.currentTrackIndex);
+    }
+  }
+}, [player?.currentTrackIndex]);
 
 
   
@@ -333,6 +350,7 @@ export default function MusicPlayer() {
     <div className="flex flex-col items-center w-full sm:w-3xl min-h-screen  p-6 mx-auto bg-gray-800 bg-gradient-to-t from-black via-gray-800 to-black sm:rounded-lg shadow-lg">
 
       <Swiper
+        ref={swiperRef}
         grabCursor={true}
         effect={'creative'}
         creativeEffect={{
@@ -349,13 +367,16 @@ export default function MusicPlayer() {
         modules={[EffectCreative]}
         className="m-5 !size-80"
         onSlideChange={(swiper) => {
-        setPlayer({ 
-          ...player, 
-          currentTrackIndex: swiper.activeIndex, 
-          isPlaying: true 
-        });
-      }}
+          // console.log(swiper);
+          setPlayer({ 
+            ...player, 
+            currentTrackIndex: swiper.realIndex, 
+            isPlaying: true 
+          });
+        }}
+        
       >
+        {/* Imagen de la canción + info */}
         {player.playlist.map((track, index) => (
             <SwiperSlide 
               key={index} 
@@ -363,9 +384,9 @@ export default function MusicPlayer() {
                 setPlayer({ ...player, currentTrackIndex: index, isPlaying: true })
               }
             >
-              {({ isActive }) => (
+              {
                 player.playlist.length > 0 && (
-                  <div onClick={ alternateShowSongInfo } className="size-80 mb-6 *:rounded-lg overflow-hidden rounded-lg relative">
+                  <div onClick={ alternateShowSongInfo } className={`size-80 mb-6 *:rounded-lg overflow-hidden rounded-lg relative transition-all duration-500`}>
                     
                     <img 
                         src={track.picture} 
@@ -377,39 +398,18 @@ export default function MusicPlayer() {
                       <h3 className="text-xl font-semibold text-white text-center"> {track.title}</h3>
                       <h3 className='text-sm text-gray-400 font-normal'>Artist: {track.artist}</h3>
                       <h3 className='text-sm text-gray-400 font-normal'>Album: {track.album}</h3>
-                      <h3 className='text-sm text-gray-400 font-normal'>Current slide is {isActive ? 'active' : 'not active'}</h3>
                       <h3 className='text-sm text-gray-400 font-normal'>Genre: {track.genre.join(', ') }</h3>
                       <h3 className='text-sm text-gray-400 font-normal'>Year: {track.year}</h3>
                     </div>
                   </div>
                 )
-              )}
+              }
               
             </SwiperSlide>
           ))}
       </Swiper>
 
 
-      {/* Imagen de la cancion */}
-      {/* {player.playlist.length > 0 && (
-        <div onClick={ alternateShowSongInfo } className="size-80 mb-6 *:rounded-lg overflow-hidden rounded-lg relative">
-            <img 
-                src={player.playlist[player.currentTrackIndex].picture} 
-                alt={player.playlist[player.currentTrackIndex].title} 
-                className="size-full"
-              />
-
-          {player.playlist[player.currentTrackIndex] &&
-            <div className={`flex flex-col gap-y-1 absolute top-0 left-0 size-full bg-black  border border-gray-500 text-sm p-3 duration-300 ${player.showSongInfo ? 'opacity-85' : 'opacity-0'}`}>
-              <h3 className="text-xl font-semibold text-white text-center"> {player.playlist[player.currentTrackIndex].title}</h3>
-              <h3 className='text-sm text-gray-400 font-normal'>Artist: {player.playlist[player.currentTrackIndex].artist}</h3>
-              <h3 className='text-sm text-gray-400 font-normal'>Album: {player.playlist[player.currentTrackIndex].album}</h3>
-              <h3 className='text-sm text-gray-400 font-normal'>Year: {player.playlist[player.currentTrackIndex].year}</h3>
-              <h3 className='text-sm text-gray-400 font-normal'>Genre: {player.playlist[player.currentTrackIndex].genre.join(', ') }</h3>
-            </div>}
-        </div>
-      )} */}
-      
       {/* Información de la canción actual */}
       <div className="w-68 mb-4 text-center bg-slate-6000">
         {player.playlist.length > 0 ? (
@@ -467,7 +467,13 @@ export default function MusicPlayer() {
           <button 
             onClick={ handleExpandVolume }
             className={`${player.volumeBarWidth === 0 ? '' : 'mr-2'} text-white`}>
-            {player.isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+            {
+              player.volume === 0 
+                ? <Volume size={20} />
+                : player.volume < 0.8
+                ? <Volume1 size={20} /> 
+                : <Volume2 size={20} />
+            }
           </button>
           
           <input 
@@ -575,7 +581,7 @@ export default function MusicPlayer() {
             {player.playlist.map((track, index) => (
               <li 
                 key={index} 
-                  className={`relative flex items-center p-3 border-b last:border-b-0 cursor-pointer border-gray-600 bg-gray-700 ${index === player.currentTrackIndex ? 'bg-transparent' : ' hover:bg-gray-900'} group`}
+                  className={`relative flex items-center p-3 border-b last:border-b-0 cursor-pointer border-gray-600 bg-gray-700 ${index === player.currentTrackIndex ? 'bg-linear-to-r from-black' : ' hover:bg-gray-900'} group`}
                 onClick={() => 
                   setPlayer({ ...player, currentTrackIndex: index, isPlaying: true })
                 }
